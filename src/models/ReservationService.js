@@ -2,21 +2,31 @@
 // Servicio para gestionar reservas en Firestore.
 // Incluye CRUD básico para reservas.
 
-import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+} from "firebase/firestore";
+import { db } from "../firebaseConfig";
 
 class ReservationService {
   // Obtener todas las reservas
   async getAllReservations() {
     try {
-      const querySnapshot = await getDocs(collection(db, 'reservations'));
+      const querySnapshot = await getDocs(collection(db, "reservations"));
       const reservations = [];
       querySnapshot.forEach((doc) => {
         reservations.push({ id: doc.id, ...doc.data() });
       });
       return { success: true, reservations };
     } catch (error) {
-      console.error('Error obteniendo reservas:', error);
+      console.error("Error obteniendo reservas:", error);
       return { success: false, error: error.message };
     }
   }
@@ -24,7 +34,10 @@ class ReservationService {
   // Obtener reservas por usuario
   async getReservationsByUser(userId) {
     try {
-      const q = query(collection(db, 'reservations'), where('userId', '==', userId));
+      const q = query(
+        collection(db, "reservations"),
+        where("userId", "==", userId),
+      );
       const querySnapshot = await getDocs(q);
       const reservations = [];
       querySnapshot.forEach((doc) => {
@@ -32,7 +45,7 @@ class ReservationService {
       });
       return { success: true, reservations };
     } catch (error) {
-      console.error('Error obteniendo reservas por usuario:', error);
+      console.error("Error obteniendo reservas por usuario:", error);
       return { success: false, error: error.message };
     }
   }
@@ -40,14 +53,17 @@ class ReservationService {
   // Obtener una reserva por ID
   async getReservationById(id) {
     try {
-      const docSnap = await getDoc(doc(db, 'reservations', id));
+      const docSnap = await getDoc(doc(db, "reservations", id));
       if (docSnap.exists()) {
-        return { success: true, reservation: { id: docSnap.id, ...docSnap.data() } };
+        return {
+          success: true,
+          reservation: { id: docSnap.id, ...docSnap.data() },
+        };
       } else {
-        return { success: false, error: 'Reserva no encontrada' };
+        return { success: false, error: "Reserva no encontrada" };
       }
     } catch (error) {
-      console.error('Error obteniendo reserva:', error);
+      console.error("Error obteniendo reserva:", error);
       return { success: false, error: error.message };
     }
   }
@@ -55,10 +71,13 @@ class ReservationService {
   // Crear una nueva reserva
   async createReservation(reservationData) {
     try {
-      const docRef = await addDoc(collection(db, 'reservations'), reservationData);
+      const docRef = await addDoc(
+        collection(db, "reservations"),
+        reservationData,
+      );
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('Error creando reserva:', error);
+      console.error("Error creando reserva:", error);
       return { success: false, error: error.message };
     }
   }
@@ -66,10 +85,10 @@ class ReservationService {
   // Actualizar una reserva
   async updateReservation(id, reservationData) {
     try {
-      await updateDoc(doc(db, 'reservations', id), reservationData);
+      await updateDoc(doc(db, "reservations", id), reservationData);
       return { success: true };
     } catch (error) {
-      console.error('Error actualizando reserva:', error);
+      console.error("Error actualizando reserva:", error);
       return { success: false, error: error.message };
     }
   }
@@ -77,13 +96,14 @@ class ReservationService {
   // Eliminar una reserva
   async deleteReservation(id) {
     try {
-      await deleteDoc(doc(db, 'reservations', id));
+      await deleteDoc(doc(db, "reservations", id));
       return { success: true };
     } catch (error) {
-      console.error('Error eliminando reserva:', error);
+      console.error("Error eliminando reserva:", error);
       return { success: false, error: error.message };
     }
   }
 }
 
-export default new ReservationService();
+const reservationService = new ReservationService();
+export default reservationService;

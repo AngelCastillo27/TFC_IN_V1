@@ -3,9 +3,9 @@
 // Gestiona el estado del login, errores, y llamadas al modelo AuthService.
 // Ahora extendido para incluir el rol del usuario.
 
-import { useState, useEffect } from 'react';
-import { auth } from '../firebaseConfig';
-import AuthService from '../models/AuthService';
+import { useState, useEffect } from "react";
+import { auth } from "../firebaseConfig";
+import AuthService from "../models/AuthService";
 
 const useAuth = () => {
   // Estado para el usuario actual
@@ -68,12 +68,8 @@ const useAuth = () => {
     role,
     loading,
     error,
-    requiresMFA,
-    verificationId,
     login,
-    sendMFACode,
-    verifyMFA,
-    logout
+    logout,
   };
 };
 

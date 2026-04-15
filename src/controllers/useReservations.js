@@ -1,8 +1,8 @@
 // Controlador: useReservations.js
 // Hook para manejar CRUD de reservas.
 
-import { useState, useEffect } from 'react';
-import ReservationService from '../models/ReservationService';
+import { useState, useEffect, useCallback } from "react";
+import ReservationService from "../models/ReservationService";
 
 const useReservations = (userId = null) => {
   const [reservations, setReservations] = useState([]);
@@ -10,7 +10,7 @@ const useReservations = (userId = null) => {
   const [error, setError] = useState(null);
 
   // Cargar reservas (todas o por usuario)
-  const loadReservations = async () => {
+  const loadReservations = useCallback(async () => {
     setLoading(true);
     const result = userId
       ? await ReservationService.getReservationsByUser(userId)
@@ -21,7 +21,7 @@ const useReservations = (userId = null) => {
     } else {
       setError(result.error);
     }
-  };
+  }, [userId]);
 
   // Crear reserva
   const createReservation = async (reservationData) => {
@@ -36,7 +36,10 @@ const useReservations = (userId = null) => {
 
   // Actualizar reserva
   const updateReservation = async (id, reservationData) => {
-    const result = await ReservationService.updateReservation(id, reservationData);
+    const result = await ReservationService.updateReservation(
+      id,
+      reservationData,
+    );
     if (result.success) {
       loadReservations();
     } else {
@@ -58,7 +61,7 @@ const useReservations = (userId = null) => {
 
   useEffect(() => {
     loadReservations();
-  }, [userId]);
+  }, [loadReservations]);
 
   return {
     reservations,
@@ -67,7 +70,7 @@ const useReservations = (userId = null) => {
     createReservation,
     updateReservation,
     deleteReservation,
-    loadReservations
+    loadReservations,
   };
 };
 
