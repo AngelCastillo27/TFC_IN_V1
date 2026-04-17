@@ -1,0 +1,100 @@
+mutation SeedData @transaction @auth(level: PUBLIC, insecureReason: "This is seed data and should be publicly accessible for populating the database.") {
+  user_insertMany(data: [
+    {
+      id: "b21a8a27-b9f0-4d4b-9d41-e41c4f0b2f1e",
+      email: "john.doe@example.com",
+      password: "hashedpassword1",
+      role: "customer",
+      firstName: "John",
+      lastName: "Doe",
+      phoneNumber: "555-123-4567",
+      createdAt: "2023-10-27T10:00:00Z"
+    },
+    {
+      id: "c8f3b0e1-a9d2-4e7c-8f1b-5e2a3c1d0e9f",
+      email: "jane.smith@example.com",
+      password: "hashedpassword2",
+      role: "admin",
+      firstName: "Jane",
+      lastName: "Smith",
+      phoneNumber: "555-987-6543",
+      createdAt: "2023-10-27T10:05:00Z"
+    }
+  ])
+  table_insertMany(data: [
+    {
+      id: "a1c2d3e4-f5g6-7h8i-9j0k-1l2m3n4o5p6q",
+      tableNumber: 1,
+      capacity: 4,
+      location: "Indoor",
+      createdAt: "2023-10-27T10:10:00Z"
+    },
+    {
+      id: "b7c8d9e0-f1g2-3h4i-5j6k-7l8m9n0o1p2r",
+      tableNumber: 2,
+      capacity: 6,
+      location: "Outdoor",
+      createdAt: "2023-10-27T10:15:00Z"
+    }
+  ])
+  menuItem_insertMany(data: [
+    {
+      id: "d1e2f3g4-h5i6-7j8k-9l0m-1n2o3p4q5r6s",
+      name: "Spaghetti Carbonara",
+      description: "Classic Italian pasta dish with eggs, hard cheese, cured pork, and black pepper.",
+      price: 18.50,
+      category: "Pasta",
+      createdAt: "2023-10-27T10:20:00Z",
+      imageUrl: "https://example.com/carbonara.jpg",
+      allergens: ["eggs", "dairy"]
+    },
+    {
+      id: "e9f0g1h2-i3j4-5k6l-7m8n-9o0p1q2r3s4t",
+      name: "Margherita Pizza",
+      description: "Simple Neapolitan pizza, topped with San Marzano tomatoes, mozzarella cheese, fresh basil, salt, and olive oil.",
+      price: 15.00,
+      category: "Pizza",
+      createdAt: "2023-10-27T10:25:00Z",
+      imageUrl: "https://example.com/margherita.jpg",
+      allergens: ["gluten", "dairy"]
+    }
+  ])
+  reservation_insertMany(data: [
+    {
+      id: "f5g6h7i8-j9k0-1l2m-3n4o-5p6q7r8s9t0u",
+      userId: "b21a8a27-b9f0-4d4b-9d41-e41c4f0b2f1e",
+      tableId: "a1c2d3e4-f5g6-7h8i-9j0k-1l2m3n4o5p6q",
+      reservationDate: "2023-11-01",
+      reservationTime: "19:00",
+      numberOfGuests: 2,
+      status: "confirmed",
+      createdAt: "2023-10-27T10:30:00Z",
+      specialRequests: "Window seat if possible.",
+      dietaryPreferences: []
+    },
+    {
+      id: "g1h2i3j4-k5l6-7m8n-9o0p-1q2r3s4t5u6v",
+      userId: "c8f3b0e1-a9d2-4e7c-8f1b-5e2a3c1d0e9f",
+      tableId: "b7c8d9e0-f1g2-3h4i-5j6k-7l8m9n0o1p2r",
+      reservationDate: "2023-11-02",
+      reservationTime: "20:00",
+      numberOfGuests: 4,
+      status: "pending",
+      createdAt: "2023-10-27T10:35:00Z",
+      specialRequests: null,
+      dietaryPreferences: ["vegetarian"]
+    }
+  ])
+  restaurantInfo_insertMany(data: [
+    {
+      id: "h7i8j9k0-l1m2-3n4o-5p6q-7r8s9t0u1v2w",
+      name: "The Grand Bistro",
+      address: "123 Main St, Anytown, USA",
+      phoneNumber: "555-789-0123",
+      openingHours: "Mon-Sun: 11:00 AM - 10:00 PM",
+      createdAt: "2023-10-27T10:40:00Z",
+      description: "A culinary journey of exquisite flavors.",
+      imageUrls: ["https://example.com/bistro_exterior.jpg", "https://example.com/bistro_interior.jpg"]
+    }
+  ])
+}
