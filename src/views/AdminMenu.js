@@ -1,268 +1,204 @@
 // Vista: AdminMenu.js
-// Componente para administración del menú
-// Gestiona platos: crear, editar, eliminar, buscar y filtrar
+// CRUD completo de platos del menu para administradores.
+// Importaciones corregidas desde models/ (no services/).
 
 import React, { useState, useEffect } from "react";
-import MenuService from "../services/MenuService";
+import menuService from "../models/MenuService";
 import "../styles/ChineseStyle.css";
 
+const CATEGORIES = ["Entradas", "Platos Principales", "Postres", "Bebidas", "Otros"];
+
+const EMPTY_FORM = {
+  name: "",
+  description: "",
+  price: "",
+  category: "",
+  allergens: "",
+  imageUrl: "",
+  available: true,
+};
+
 const AdminMenu = () => {
-  const [dishes, setDishes] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
-  const [editingId, setEditingId] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [categories] = useState([
-    "Entradas",
-    "Platos Principales",
-    "Postres",
-    "Bebidas",
-    "Otros"
-  ]);
+  const [dishes, setDishes]           = useState([]);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState(null);
+  const [success, setSuccess]         = useState(null);
+  const [searchTerm, setSearchTerm]   = useState("");
+  const [filterCat, setFilterCat]     = useState("all");
+  const [showForm, setShowForm]       = useState(false);
+  const [editingId, setEditingId]     = useState(null);
+  const [formData, setFormData]       = useState(EMPTY_FORM);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "",
-    allergens: "",
-    imageUrl: ""
-  });
-
-  // Cargar todos los platos al montar el componente
-  useEffect(() => {
-    loadDishes();
-  }, []);
+  // Carga inicial
+  useEffect(() => { loadDishes(); }, []);
 
   const loadDishes = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await MenuService.getAllDishes();
-      setDishes(data || []);
-    } catch (err) {
-      setError("Error al cargar los platos: " + err.message);
-      console.error(err);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    setError(null);
+    const result = await menuService.getAllMenus();
+    setLoading(false);
+    if (result.success) {
+      setDishes(result.menus);
+    } else {
+      setError("Error al cargar los platos: " + result.error);
     }
   };
 
-  const handleAddNew = () => {
-    setFormData({
-      name: "",
-      description: "",
-      price: "",
-      category: "",
-      allergens: "",
-      imageUrl: ""
-    });
+  // Formulario - abrir nuevo
+  const openNew = () => {
+    setFormData(EMPTY_FORM);
     setEditingId(null);
     setShowForm(true);
+    setError(null);
+    setSuccess(null);
   };
 
-  const handleEdit = (dish) => {
+  // Formulario - abrir edicion
+  const openEdit = (dish) => {
     setFormData({
-      name: dish.name,
-      description: dish.description,
-      price: dish.price,
-      category: dish.category,
-      allergens: dish.allergens || "",
-      imageUrl: dish.imageUrl || ""
+      name:        dish.name        || "",
+      description: dish.description || "",
+      price:       dish.price       || "",
+      category:    dish.category    || "",
+      allergens:   dish.allergens   || "",
+      imageUrl:    dish.imageUrl    || "",
+      available:   dish.available !== false,
     });
     setEditingId(dish.id);
     setShowForm(true);
+    setError(null);
+    setSuccess(null);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-
     if (!formData.name.trim() || !formData.price) {
-      setError("Por favor completa los campos requeridos");
+      setError("Nombre y precio son obligatorios.");
       return;
     }
+    setLoading(true);
+    setError(null);
 
-    try {
-      setLoading(true);
-      if (editingId) {
-        await MenuService.updateDish(editingId, formData);
-      } else {
-        await MenuService.addDish(formData);
-      }
-      
-      await loadDishes();
+    const payload = { ...formData, price: parseFloat(formData.price) };
+    const result = editingId
+      ? await menuService.updateMenu(editingId, payload, true)
+      : await menuService.createMenu(payload, true);
+
+    setLoading(false);
+    if (result.success) {
+      setSuccess(editingId ? "Plato actualizado correctamente." : "Plato creado correctamente.");
       setShowForm(false);
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        category: "",
-        allergens: "",
-        imageUrl: ""
-      });
-    } catch (err) {
-      setError("Error al guardar el plato: " + err.message);
-      console.error(err);
-    } finally {
-      setLoading(false);
+      setFormData(EMPTY_FORM);
+      setEditingId(null);
+      loadDishes();
+    } else {
+      setError("Error al guardar: " + result.error);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este plato?")) {
-      try {
-        setLoading(true);
-        await MenuService.deleteDish(id);
-        await loadDishes();
-      } catch (err) {
-        setError("Error al eliminar el plato: " + err.message);
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
+    if (!window.confirm("Esta accion es irreversible. Eliminar este plato?")) return;
+    setLoading(true);
+    const result = await menuService.deleteMenu(id, true);
+    setLoading(false);
+    if (result.success) { setSuccess("Plato eliminado."); loadDishes(); }
+    else setError("Error al eliminar: " + result.error);
   };
 
-  const handleToggleAvailability = async (id, currentStatus) => {
-    try {
-      await MenuService.updateDish(id, { available: !currentStatus });
-      await loadDishes();
-    } catch (err) {
-      setError("Error al actualizar disponibilidad: " + err.message);
-      console.error(err);
-    }
+  const handleToggle = async (dish) => {
+    const result = await menuService.toggleMenuAvailability(dish.id, !dish.available, true);
+    if (result.success) loadDishes();
+    else setError("Error al cambiar disponibilidad.");
   };
 
-  const filteredDishes = dishes.filter(dish => {
-    const matchesSearch = dish.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (dish.description && dish.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = filterCategory === "all" || dish.category === filterCategory;
-    return matchesSearch && matchesCategory;
+  // Filtros
+  const filtered = dishes.filter((d) => {
+    const matchSearch =
+      d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCat = filterCat === "all" || d.category === filterCat;
+    return matchSearch && matchCat;
   });
 
   return (
-    <div className="admin-menu-container">
-      <div className="admin-header">
-        <h1>??? Administración de Menú</h1>
-        <button 
-          onClick={handleAddNew}
-          disabled={loading}
-          className="btn-primary btn-add-new"
-        >
-          ? Agregar Nuevo Plato
+    <div style={{ padding: "20px" }}>
+
+      {/* Cabecera */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <h1 style={{ color: "#DC143C", margin: 0 }}>Administracion de Menu</h1>
+        <button onClick={openNew} disabled={loading} style={btnPrimary}>
+          + Nuevo Plato
         </button>
       </div>
 
-      {error && (
-        <div className="error-message error-box">
-          ?? {error}
-        </div>
-      )}
+      {/* Mensajes */}
+      {error   && <div style={alertError}>{error}</div>}
+      {success && <div style={alertSuccess}>{success}</div>}
 
-      {/* Formulario de edición/creación */}
+      {/* Formulario */}
       {showForm && (
-        <div className="admin-form-card">
-          <h2>{editingId ? "Editar Plato" : "Nuevo Plato"}</h2>
-          <form onSubmit={handleSubmit} className="admin-form">
-            <div className="form-group">
-              <label>Nombre del Plato *</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Ej: Peking Duck"
-                required
-              />
-            </div>
+        <div style={{ background: "#fff8f0", border: "2px solid #DC143C", borderRadius: "10px", padding: "24px", marginBottom: "24px" }}>
+          <h2 style={{ color: "#DC143C", marginTop: 0 }}>{editingId ? "Editar Plato" : "Nuevo Plato"}</h2>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
 
-            <div className="form-group">
-              <label>Descripción</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Descripción del plato..."
-                rows="3"
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Precio *</label>
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  required
-                />
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={labelStyle}>Nombre del Plato *</label>
+                <input name="name" value={formData.name} onChange={handleChange}
+                  placeholder="Ej: Pato Pekin" required style={inputStyle} />
               </div>
 
-              <div className="form-group">
-                <label>Categoría</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Seleccionar categoría</option>
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={labelStyle}>Descripcion</label>
+                <textarea name="description" value={formData.description} onChange={handleChange}
+                  rows={3} placeholder="Descripcion del plato..." style={{ ...inputStyle, resize: "vertical" }} />
+              </div>
+
+              <div>
+                <label style={labelStyle}>Precio (euros) *</label>
+                <input name="price" type="number" step="0.01" min="0" value={formData.price}
+                  onChange={handleChange} placeholder="0.00" required style={inputStyle} />
+              </div>
+
+              <div>
+                <label style={labelStyle}>Categoria</label>
+                <select name="category" value={formData.category} onChange={handleChange} style={inputStyle}>
+                  <option value="">Seleccionar...</option>
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
+
+              <div>
+                <label style={labelStyle}>Alergenos</label>
+                <input name="allergens" value={formData.allergens} onChange={handleChange}
+                  placeholder="Ej: Gluten, Lacteos" style={inputStyle} />
+              </div>
+
+              <div>
+                <label style={labelStyle}>URL de Imagen</label>
+                <input name="imageUrl" type="url" value={formData.imageUrl} onChange={handleChange}
+                  placeholder="https://..." style={inputStyle} />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <input name="available" type="checkbox" checked={formData.available}
+                  onChange={handleChange} id="chk-available" />
+                <label htmlFor="chk-available" style={{ color: "#8B0000", fontWeight: "bold" }}>
+                  Disponible en carta
+                </label>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>Alérgenos</label>
-              <input
-                type="text"
-                name="allergens"
-                value={formData.allergens}
-                onChange={handleInputChange}
-                placeholder="Ej: Cacahuetes, Lácteos"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>URL de Imagen</label>
-              <input
-                type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleInputChange}
-                placeholder="https://..."
-              />
-            </div>
-
-            <div className="form-buttons">
-              <button 
-                type="submit"
-                disabled={loading}
-                className="btn-primary"
-              >
+            <div style={{ marginTop: "20px", display: "flex", gap: "12px" }}>
+              <button type="submit" disabled={loading} style={btnPrimary}>
                 {loading ? "Guardando..." : "Guardar"}
               </button>
-              <button 
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="btn-secondary"
-              >
+              <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} style={btnSecondary}>
                 Cancelar
               </button>
             </div>
@@ -270,101 +206,88 @@ const AdminMenu = () => {
         </div>
       )}
 
-      {/* Filtros y búsqueda */}
-      <div className="admin-filters">
-        <input
-          type="text"
-          placeholder="?? Buscar plato..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-        <select
-          value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
-          className="filter-select"
-        >
-          <option value="all">Todas las categorías</option>
-          {categories.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
+      {/* Filtros */}
+      <div style={{ display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" }}>
+        <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar plato..." style={{ ...inputStyle, maxWidth: "260px" }} />
+        <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)} style={{ ...inputStyle, maxWidth: "200px" }}>
+          <option value="all">Todas las categorias</option>
+          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
 
+      {/* Estadisticas */}
+      <div style={{ display: "flex", gap: "16px", marginBottom: "20px", flexWrap: "wrap" }}>
+        {[
+          { label: "Total Platos", value: dishes.length },
+          { label: "Disponibles", value: dishes.filter((d) => d.available).length },
+          { label: "No disponibles", value: dishes.filter((d) => !d.available).length },
+        ].map((s) => (
+          <div key={s.label} style={statBox}>
+            <div style={{ fontSize: "24px", fontWeight: "bold", color: "#DC143C" }}>{s.value}</div>
+            <div style={{ fontSize: "12px", color: "#555" }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Loading */}
+      {loading && <p style={{ color: "#DC143C" }}>Cargando...</p>}
+
+      {/* Sin resultados */}
+      {!loading && filtered.length === 0 && (
+        <p style={{ textAlign: "center", color: "#888", padding: "30px" }}>
+          No hay platos que coincidan.
+        </p>
+      )}
+
       {/* Tabla de platos */}
-      {loading && <p className="loading-text">Cargando...</p>}
-      
-      <div className="admin-table-container">
-        {filteredDishes.length > 0 ? (
-          <table className="admin-table">
+      {!loading && filtered.length > 0 && (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
             <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th>Precio</th>
-                <th>Descripción</th>
-                <th>Alérgenos</th>
-                <th>Disponibilidad</th>
-                <th>Acciones</th>
+              <tr style={{ background: "#DC143C", color: "#fff" }}>
+                {["Nombre", "Categoria", "Precio", "Alergenos", "Disponible", "Acciones"].map((h) => (
+                  <th key={h} style={{ padding: "10px 12px", textAlign: "left" }}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {filteredDishes.map(dish => (
-                <tr key={dish.id}>
-                  <td className="dish-name">{dish.name}</td>
-                  <td>{dish.category}</td>
-                  <td className="dish-price">€{dish.price.toFixed(2)}</td>
-                  <td className="dish-description">{dish.description?.substring(0, 40)}...</td>
-                  <td>{dish.allergens || "-"}</td>
-                  <td>
-                    <button
-                      onClick={() => handleToggleAvailability(dish.id, dish.available)}
-                      className={vailability-btn }
-                    >
-                      {dish.available ? "? Disponible" : "? No disponible"}
+              {filtered.map((dish, i) => (
+                <tr key={dish.id} style={{ background: i % 2 === 0 ? "#fff" : "#fff8f0", borderBottom: "1px solid #eee" }}>
+                  <td style={td}><strong>{dish.name}</strong></td>
+                  <td style={td}>{dish.category || "Sin categoria"}</td>
+                  <td style={td}>{parseFloat(dish.price || 0).toFixed(2)} euros</td>
+                  <td style={td}>{dish.allergens || "Ninguno"}</td>
+                  <td style={td}>
+                    <button onClick={() => handleToggle(dish)}
+                      style={{ background: dish.available ? "#4CAF50" : "#f44336", color: "#fff", border: "none", padding: "4px 12px", borderRadius: "12px", cursor: "pointer", fontSize: "12px", fontWeight: "bold" }}>
+                      {dish.available ? "Si" : "No"}
                     </button>
                   </td>
-                  <td className="action-buttons">
-                    <button 
-                      onClick={() => handleEdit(dish)}
-                      className="btn-edit"
-                      disabled={loading}
-                    >
-                      ?? Editar
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(dish.id)}
-                      className="btn-delete"
-                      disabled={loading}
-                    >
-                      ??? Eliminar
-                    </button>
+                  <td style={{ ...td, whiteSpace: "nowrap" }}>
+                    <button onClick={() => openEdit(dish)} style={{ ...btnEdit, marginRight: "8px" }}>Editar</button>
+                    <button onClick={() => handleDelete(dish.id)} style={btnDelete}>Eliminar</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        ) : (
-          <p className="no-data-message">No hay platos que coincidan con los filtros</p>
-        )}
-      </div>
-
-      <div className="admin-stats">
-        <div className="stat-box">
-          <p className="stat-label">Total de Platos</p>
-          <p className="stat-value">{dishes.length}</p>
         </div>
-        <div className="stat-box">
-          <p className="stat-label">Disponibles</p>
-          <p className="stat-value">{dishes.filter(d => d.available).length}</p>
-        </div>
-        <div className="stat-box">
-          <p className="stat-label">No Disponibles</p>
-          <p className="stat-value">{dishes.filter(d => !d.available).length}</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
+
+// Estilos reutilizables
+const labelStyle   = { display: "block", color: "#8B0000", fontWeight: "bold", marginBottom: "4px", fontSize: "13px" };
+const inputStyle   = { width: "100%", padding: "10px", border: "2px solid #FFD700", borderRadius: "6px", fontSize: "14px", boxSizing: "border-box" };
+const btnPrimary   = { backgroundColor: "#DC143C", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" };
+const btnSecondary = { backgroundColor: "#888", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer" };
+const btnEdit      = { background: "#FFD700", color: "#1a1a1a", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: "12px", fontWeight: "bold" };
+const btnDelete    = { background: "#DC143C", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: "12px", fontWeight: "bold" };
+const statBox      = { background: "#fff", border: "2px solid #DC143C", borderRadius: "8px", padding: "16px 24px", textAlign: "center", minWidth: "100px" };
+const td           = { padding: "10px 12px", verticalAlign: "middle" };
+const alertError   = { background: "#ffe0e0", border: "1px solid #DC143C", padding: "10px", borderRadius: "6px", marginBottom: "12px", color: "#8B0000" };
+const alertSuccess = { background: "#e0ffe0", border: "1px solid #4CAF50", padding: "10px", borderRadius: "6px", marginBottom: "12px", color: "#2e7d32" };
 
 export default AdminMenu;

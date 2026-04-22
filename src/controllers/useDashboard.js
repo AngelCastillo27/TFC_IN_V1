@@ -1,42 +1,41 @@
 // Controlador: useDashboard.js
-// Este hook maneja la lógica del dashboard principal.
-// Gestiona la selección de opciones del sidebar y permisos basados en el rol.
+// Gestiona las opciones del sidebar segun el rol del usuario.
+// Roles: "admin" | "comensal"
 
-import { useState } from 'react';
+import { useState } from "react";
+
+// Definicion de todas las opciones del sidebar con los roles que pueden verlas
+const ALL_OPTIONS = [
+  { id: "inicio",         label: "Inicio",           roles: ["admin", "comensal"] },
+  { id: "reservas",       label: "Mis Reservas",      roles: ["comensal"] },
+  { id: "admin-menu",     label: "Gestion de Menu",   roles: ["admin"] },
+  { id: "admin-mesas",    label: "Gestion de Mesas",  roles: ["admin"] },
+  { id: "admin-ofertas",  label: "Gestion de Ofertas",roles: ["admin"] },
+  { id: "admin-reservas", label: "Todas las Reservas",roles: ["admin"] },
+];
 
 const useDashboard = (role) => {
-  // Estado para la opción seleccionada en el sidebar
-  const [selectedOption, setSelectedOption] = useState('inicio');
+  const [selectedOption, setSelectedOption] = useState("inicio");
 
-  // Opciones disponibles en el sidebar
-  const options = [
-    { id: 'inicio', label: 'Inicio', roles: ['admin', 'comensal'] },
-    { id: 'reservas', label: 'Reservas', roles: ['admin', 'comensal'] },
-    { id: 'mesas', label: 'Mesas', roles: ['admin', 'comensal'] },
-    { id: 'usuarios', label: 'Usuarios', roles: ['admin'] }, // Solo admin
-    { id: 'configuracion', label: 'Configuración', roles: ['admin'] } // Solo admin
-  ];
+  // Solo las opciones que corresponden al rol actual
+  const availableOptions = ALL_OPTIONS.filter(
+    (opt) => opt.roles.includes(role)
+  );
 
-  // Filtrar opciones basadas en el rol
-  const availableOptions = options.filter(option => option.roles.includes(role));
-
-  // Función para seleccionar una opción
-  const selectOption = (optionId) => {
-    if (availableOptions.find(opt => opt.id === optionId)) {
-      setSelectedOption(optionId);
+  const selectOption = (id) => {
+    if (availableOptions.find((opt) => opt.id === id)) {
+      setSelectedOption(id);
     }
   };
 
-  // Función para verificar si una opción está disponible para el rol
-  const isOptionAvailable = (optionId) => {
-    return availableOptions.some(opt => opt.id === optionId);
-  };
+  const isOptionAvailable = (id) =>
+    availableOptions.some((opt) => opt.id === id);
 
   return {
     selectedOption,
     availableOptions,
     selectOption,
-    isOptionAvailable
+    isOptionAvailable,
   };
 };
 

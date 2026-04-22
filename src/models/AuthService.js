@@ -176,7 +176,7 @@ class AuthService {
   async sendWelcomeEmail(email, displayName) {
     try {
       const response = await fetch(
-        "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/sendWelcomeEmail",
+        "https://us-central1-digitalizacion-tsinge-fusion.cloudfunctions.net/sendWelcomeEmail",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
