@@ -2,6 +2,36 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Colección de usuarios
+    match /users/{uid} {
+      // Crear: solo si eres el usuario nuevo que se registra
+      allow create: if request.auth.uid == uid;
+      
+      // Leer: si eres el propietario o eres admin
+      allow read: if request.auth.uid == uid || 
+                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      
+      // Actualizar: solo el propietario o admin
+      allow update: if request.auth.uid == uid || 
+                       get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      
+      // Eliminar: solo admin
+      allow delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Colección de reservaciones - usuarios autenticados
+    match /reservations/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Colección de mesas - leer todos, escribir solo admins
+    match /tables/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Resto de colecciones: denegar por defecto
     match /{document=**} {
       allow read, write: if false;
     }

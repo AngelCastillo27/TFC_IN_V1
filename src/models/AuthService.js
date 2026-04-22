@@ -8,8 +8,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  sendPasswordResetEmail,
+  confirmPasswordReset,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Importaciones para Firestore
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 
 class AuthService {
@@ -24,31 +26,66 @@ class AuthService {
       const user = userCredential.user;
       return { success: true, user };
     } catch (error) {
+      // Si el usuario no tiene contraseña pero existe con Google
+      if (
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/invalid-credential"
+      ) {
+        return {
+          success: false,
+          errorCode: error.code,
+          error: "Usuario no encontrado. ¿Quieres registrarte ahora?",
+          suggestion: "provider",
+        };
+      }
+      if (error.code === "auth/wrong-password") {
+        return {
+          success: false,
+          errorCode: error.code,
+          error: "Contraseña incorrecta",
+          suggestion: "password",
+        };
+      }
       console.error("Error en login:", error);
       return { success: false, error: error.message };
     }
   }
 
   // Método para registro con email y contraseña
-  async registerWithEmail(email, password) {
+  async registerWithEmail(email, password, name) {
     try {
+      console.log("🔐 Iniciando registro con email:", email);
+
+      // Validar que name no esté vacío
+      if (!name || name.trim() === "") {
+        throw new Error("El nombre es requerido para el registro");
+      }
+
+      // 1. Crear usuario en Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password,
       );
       const user = userCredential.user;
+      console.log("✅ Usuario creado en Auth:", user.uid);
 
-      // Crear documento del usuario en Firestore con rol 'comensal' por defecto
-      await setDoc(doc(db, "users", user.uid), {
-        role: "comensal",
+      // 2. Crear documento en Firestore
+      const userData = {
         email: user.email,
-        createdAt: new Date(),
-      });
+        name: name.trim(),
+        role: "comensal",
+        status: "active",
+        createdAt: serverTimestamp(),
+      };
+
+      console.log("📝 Creando documento en Firestore:", userData);
+      await setDoc(doc(db, "users", user.uid), userData);
+      console.log("✅ Documento creado exitosamente en Firestore");
 
       return { success: true, user };
     } catch (error) {
-      console.error("Error en registro:", error);
+      console.error("❌ Error en registro:", error.message);
       return { success: false, error: error.message };
     }
   }
@@ -76,10 +113,14 @@ class AuthService {
       if (userDoc.exists()) {
         return userDoc.data().role; // 'admin' o 'comensal'
       } else {
-        // Si no existe, asumir 'comensal' por defecto o crear
+        // Si no existe, crear con valores por defecto
+        const currentUser = auth.currentUser;
         await setDoc(doc(db, "users", uid), {
+          email: currentUser.email,
+          name: currentUser.displayName || "Usuario",
           role: "comensal",
-          email: auth.currentUser.email,
+          status: "active",
+          createdAt: serverTimestamp(),
         });
         return "comensal";
       }
@@ -112,11 +153,12 @@ class AuthService {
       if (!userDoc.exists()) {
         // Crear documento del usuario con rol 'comensal' por defecto
         await setDoc(doc(db, "users", user.uid), {
-          role: "comensal",
           email: user.email,
-          displayName: user.displayName,
+          name: user.displayName,
+          role: "comensal",
+          status: "active",
           photoURL: user.photoURL,
-          createdAt: new Date(),
+          createdAt: serverTimestamp(),
         });
 
         // Enviar email de bienvenida

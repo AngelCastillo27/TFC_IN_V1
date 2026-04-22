@@ -42,6 +42,21 @@ body {
   margin-bottom: 20px;
 }
 
+.form-group-container {
+  margin-bottom: 20px;
+}
+
+.info-message {
+  background-color: rgba(255, 215, 0, 0.2);
+  border: 2px solid var(--chinese-gold);
+  color: var(--chinese-dark-red);
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
 .form-group label {
   display: block;
   color: var(--chinese-dark-red);
@@ -157,6 +172,14 @@ body {
 .btn-google:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Botones de redes sociales */
+.social-auth-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 15px;
 }
 
 .error-message {
