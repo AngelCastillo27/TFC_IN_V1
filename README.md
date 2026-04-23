@@ -1,12 +1,7 @@
-### feat: integración del menú del restaurante y estilo basico de la carta
+### style: cambios en la estructura del menu y mejora de la visualización
 
-He realizado una estructura visual básica de la carta del restaurante. Dado que la base de datos está en proceso de desarrollo, he implementado la carta mediante un modelo de datos local para garantizar el progreso del frontend.
+He cambiado la estructura visual que tenía la carta del restaurante, aplicandole una mejor visualización a cada plato y categoria.
 
 **Cambios principales:**
-* **Digitalización de la Carta:** Introducción detallada de toda la información real del menú de Qinghe (nombres de platos, descripciones de ingredientes y precios actualizados).
+* **Visualización de la Carta:** Estructura de la carta dividida por las distintas categorias y los platos colocados en 2 columnas de forma que el nombre, la descripción y el precio de cada plato se distingan bien de los demás y sea sencillo visualizarlos.
 
-* **Secciones integradas (Cobertura completa):** 
-    * Entrantes (Ensaladas, Sopas, Dim Sum).
-    * Platos principales (Arroces, Fideos, Verdura, Ternera, Pollo, Pato, Cerdo, Marisco).
-    * Especialidades Japonesas (Nigiris, Gunkan, Maki, Rolls, Temaki, Sashimi, Tataki, Tartar, Poke).
-    * Bebidas, Cafés y Postres.

@@ -342,30 +342,42 @@ const menuData = [
 
 export default function CartaView() {
   return (
-    <div className="view-container p-6 max-w-4xl mx-auto">
-      <header className="text-center mb-10">
-        <h2 className="text-4xl font-bold text-gray-800 uppercase tracking-widest">Nuestra Carta</h2>
-        <p className="text-gray-500 mt-2 italic">Cocina Fusión - El Cañaveral</p>
+    <div className="container py-5 px-3" style={{ maxWidth: '900px' }}>
+      <header className="text-center mb-5">
+        <h2 className="display-5 fw-bold text-dark text-uppercase" style={{ letterSpacing: '0.15em' }}>
+          Nuestra Carta
+        </h2>
+        <p className="text-secondary fst-italic">Cocina Fusión - El Cañaveral</p>
       </header>
 
-      <div className="space-y-12">
+      <div className="d-flex flex-column gap-5">
         {menuData.map((seccion, idx) => (
           <section key={idx}>
-            <h3 className="text-2xl font-semibold border-b-2 border-amber-500 pb-2 mb-6 text-amber-700">
+            <h3 className="h4 fw-bold pb-2 mb-4 text-uppercase" 
+                style={{ 
+                  color: '#b45309',
+                  borderBottom: '2px solid #f59e0b'
+                }}>
               {seccion.categoria}
             </h3>
-            <div className="grid gap-6 md:grid-cols-2">
+
+            <div className="row g-4">
               {seccion.platos.map((plato, pIdx) => (
-                <div key={pIdx} className="flex justify-between items-start group">
-                  <div className="flex-1 pr-4">
-                    <h4 className="text-lg font-bold text-gray-800 group-hover:text-amber-600 transition-colors">
-                      {plato.nombre}
-                    </h4>
-                    <p className="text-sm text-gray-600 leading-snug">{plato.descripcion}</p>
+                <div key={pIdx} className="col-12 col-md-6">
+                  <div className="d-flex justify-content-between align-items-start h-100 border-0">
+                    <div className="pe-3">
+                      <h5 className="fw-bold text-dark mb-1" style={{ fontSize: '1.1rem' }}>
+                        {plato.nombre}
+                      </h5>
+                      <p className="text-muted mb-0 small" style={{ lineHeight: '1.2' }}>
+                        {plato.descripcion}
+                      </p>
+                    </div>
+                    <span className="fw-bold text-dark px-2 py-1 rounded" 
+                          style={{ backgroundColor: '#f3f4f6', minWidth: 'fit-content' }}>
+                      {plato.precio}
+                    </span>
                   </div>
-                  <span className="font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded">
-                    {plato.precio}
-                  </span>
                 </div>
               ))}
             </div>
@@ -373,9 +385,14 @@ export default function CartaView() {
         ))}
       </div>
 
-      <footer className="mt-16 p-4 bg-amber-50 rounded-lg text-sm text-gray-700 border border-amber-200">
-        <p className="font-bold mb-1">Información sobre alérgenos:</p>
-        <p>
+      <footer className="mt-5 p-4 rounded-3 border" 
+              style={{ 
+                backgroundColor: '#fffbeb',
+                borderColor: '#fde68a',
+                color: '#374151'
+              }}>
+        <p className="fw-bold mb-1">Información sobre alérgenos:</p>
+        <p className="small mb-0">
           Si usted tiene alguna alergia alimentaria, por favor póngase en contacto con nuestro personal. 
           Debido a nuestra elaboración artesanal, todos los platos pueden contener trazas de alérgenos.
         </p>
