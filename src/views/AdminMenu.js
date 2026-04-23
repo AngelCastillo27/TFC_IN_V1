@@ -1,4 +1,5 @@
 // Vista: AdminMenu.js
+// Vista de administracion del menu para usuarios con rol de administrador.
 // CRUD completo de platos del menu para administradores.
 // Importaciones corregidas desde models/ (no services/).
 
