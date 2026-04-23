@@ -25,7 +25,7 @@ exports.sendWelcomeEmail = functions.https.onRequest(async (req, res) => {
     if (!email) {
       return res.status(400).json({ error: "Email es requerido" });
     }
-
+          
     const userName = displayName || email.split("@")[0];
 
     const msg = {

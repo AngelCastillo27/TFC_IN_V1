@@ -1,6 +1,6 @@
 // Vista: Menu.js
-// Componente para mostrar el menú del restaurante
-// Visible sin login, con funcionalidad de búsqueda y filtrado por categoría
+// Componente para mostrar el menï¿½ del restaurante
+// Visible sin login, con funcionalidad de bï¿½squeda y filtrado por categorï¿½a
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +18,7 @@ const Menu = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [categories, setCategories] = useState([]);
 
-  // Cargar menús al montar el componente
+  // Cargar menï¿½s al montar el componente
   useEffect(() => {
     const loadMenus = async () => {
       setLoading(true);
@@ -26,9 +26,9 @@ const Menu = () => {
       
       if (result.success) {
         setAllMenuItems(result.menus);
-        // Extraer categorías únicas
+        // Extraer categorï¿½as ï¿½nicas
         const uniqueCategories = [
-          ...new Set(result.menus.map(item => item.category || "Sin categoría")),
+          ...new Set(result.menus.map(item => item.category || "Sin categorï¿½a")),
         ];
         setCategories(uniqueCategories);
         setFilteredItems(result.menus);
@@ -41,18 +41,18 @@ const Menu = () => {
     loadMenus();
   }, []);
 
-  // Filtrar items por búsqueda y categoría
+  // Filtrar items por bï¿½squeda y categorï¿½a
   useEffect(() => {
     let filtered = allMenuItems;
 
-    // Filtrar por categoría
+    // Filtrar por categorï¿½a
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        item => (item.category || "Sin categoría") === selectedCategory
+        item => (item.category || "Sin categorï¿½a") === selectedCategory
       );
     }
 
-    // Filtrar por búsqueda
+    // Filtrar por bï¿½squeda
     if (searchTerm.trim()) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -68,7 +68,7 @@ const Menu = () => {
   const handleReserveClick = () => {
     if (!user) {
       // Mostrar alert y redirigir al login
-      alert("Debes iniciar sesión para hacer una reserva");
+      alert("Debes iniciar sesiï¿½n para hacer una reserva");
       navigate("/login");
     } else {
       navigate("/reservations");
@@ -78,25 +78,25 @@ const Menu = () => {
   if (loading) {
     return (
       <div className="menu-container">
-        <div className="loading">Cargando menú...</div>
+        <div className="loading">Cargando menï¿½...</div>
       </div>
     );
   }
 
   return (
     <div className="menu-container">
-      {/* Header del Menú */}
+      {/* Header del Menï¿½ */}
       <div className="menu-header">
         <div className="header-content">
           <button onClick={() => navigate("/")} className="back-button">
             ? Volver al Inicio
           </button>
-          <h1>?? Menú del Restaurante</h1>
+          <h1>?? Menï¿½ del Restaurante</h1>
           <p className="menu-subtitle">Descubre nuestras deliciosas opciones</p>
         </div>
       </div>
 
-      {/* Controles de búsqueda y filtrado */}
+      {/* Controles de bï¿½squeda y filtrado */}
       <div className="menu-controls">
         <div className="search-box">
           <input
@@ -110,19 +110,19 @@ const Menu = () => {
 
         <div className="category-filter">
           <button
-            className={category-btn }
+            className="category-btn"
             onClick={() => setSelectedCategory("all")}
           >
             Todos ({allMenuItems.length})
           </button>
           {categories.map((category) => {
             const count = allMenuItems.filter(
-              item => (item.category || "Sin categoría") === category
+              item => (item.category || "Sin categorÃ­a") === category
             ).length;
             return (
               <button
                 key={category}
-                className={category-btn }
+                className="category-btn"
                 onClick={() => setSelectedCategory(category)}
               >
                 {category} ({count})
@@ -135,12 +135,12 @@ const Menu = () => {
       {/* Mensaje de error */}
       {error && <div className="error-message">Error: {error}</div>}
 
-      {/* Resultado de búsqueda */}
+      {/* Resultado de bï¿½squeda */}
       {filteredItems.length === 0 ? (
         <div className="no-results">
           <p>No se encontraron platos</p>
           {searchTerm && (
-            <p className="search-hint">Intenta con otro término de búsqueda</p>
+            <p className="search-hint">Intenta con otro tï¿½rmino de bï¿½squeda</p>
           )}
         </div>
       ) : (
@@ -156,10 +156,10 @@ const Menu = () => {
                 )}
               </div>
 
-              {/* Información del plato */}
+              {/* Informaciï¿½n del plato */}
               <div className="item-content">
                 <h3 className="item-name">{item.name}</h3>
-                <p className="item-category">{item.category || "Sin categoría"}</p>
+                <p className="item-category">{item.category || "Sin categorï¿½a"}</p>
 
                 {item.description && (
                   <p className="item-description">{item.description}</p>
@@ -167,7 +167,7 @@ const Menu = () => {
 
                 {item.allergens && item.allergens.length > 0 && (
                   <div className="item-allergens">
-                    <span className="allergen-label">?? Alérgenos:</span>
+                    <span className="allergen-label">?? Alï¿½rgenos:</span>
                     <div className="allergen-list">
                       {item.allergens.map((allergen, idx) => (
                         <span key={idx} className="allergen-tag">
@@ -180,7 +180,7 @@ const Menu = () => {
 
                 {item.price && (
                   <div className="item-footer">
-                    <span className="item-price">€{item.price.toFixed(2)}</span>
+                    <span className="item-price">ï¿½{item.price.toFixed(2)}</span>
                     {item.available === false && (
                       <span className="unavailable-badge">No disponible</span>
                     )}
@@ -194,7 +194,7 @@ const Menu = () => {
 
       {/* Call to Action para Reservar */}
       <section className="menu-cta">
-        <h2>¿Te apetece probar nuestros platos?</h2>
+        <h2>ï¿½Te apetece probar nuestros platos?</h2>
         <button onClick={handleReserveClick} className="btn-primary btn-large">
           ?? Reservar una Mesa
         </button>

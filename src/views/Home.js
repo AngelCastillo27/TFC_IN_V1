@@ -1,27 +1,28 @@
 // Vista: Home.js
-// Página de inicio del restaurante - Visible sin login requerido
-// Muestra bienvenida, información del restaurante y call-to-action para reservas
+// Pï¿½gina de inicio del restaurante - Visible sin login requerido
+// Muestra bienvenida, informaciï¿½n del restaurante y call-to-action para reservas
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../controllers/useAuth";
 import "../styles/ChineseStyle.css";
 
 const Home = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user, logout } = useAuth();
 
   return (
     <div className="home-container">
-      {/* Header con navegación */}
+      {/* Header con navegaciï¿½n */}
       <header className="home-header">
         <div className="header-content">
           <div className="restaurant-logo">
             <h1>?? Dragon Palace</h1>
-            <p className="tagline">Auténtica Cocina China</p>
+            <p className="tagline">Autï¿½ntica Cocina China</p>
           </div>
           <nav className="header-nav">
             <button onClick={() => navigate("/menu")} className="nav-btn">
-              ?? Ver Menú
+              ?? Ver Menï¿½
             </button>
             {user ? (
               <>
@@ -32,13 +33,10 @@ const Home = () => {
                   ?? Mi Perfil
                 </button>
                 <button 
-                  onClick={() => {
-                    localStorage.removeItem("user");
-                    window.location.reload();
-                  }} 
+                  onClick={() => logout()} 
                   className="nav-btn btn-logout"
                 >
-                  Cerrar Sesión
+                  Cerrar Sesiï¿½n
                 </button>
               </>
             ) : (
@@ -47,7 +45,7 @@ const Home = () => {
                   onClick={() => navigate("/login")} 
                   className="nav-btn"
                 >
-                  Iniciar Sesión
+                  Iniciar Sesiï¿½n
                 </button>
                 <button 
                   onClick={() => navigate("/register")} 
@@ -61,19 +59,19 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Sección Hero */}
+      {/* Secciï¿½n Hero */}
       <section className="hero-section">
         <div className="hero-content">
-          <h2>¡Bienvenido a Dragon Palace!</h2>
+          <h2>ï¿½Bienvenido a Dragon Palace!</h2>
           <p className="hero-subtitle">
-            Descubre la más auténtica cocina china en un ambiente acogedor
+            Descubre la mï¿½s autï¿½ntica cocina china en un ambiente acogedor
           </p>
           <div className="hero-buttons">
             <button 
               onClick={() => navigate("/menu")} 
               className="btn-primary btn-large"
             >
-              ??? Explorar Menú
+              ??? Explorar Menï¿½
             </button>
             <button 
               onClick={() => user ? navigate("/reservations") : navigate("/login")} 
@@ -85,13 +83,13 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Información del Restaurante */}
+      {/* Informaciï¿½n del Restaurante */}
       <section className="info-section">
         <div className="info-cards">
           <div className="info-card">
             <div className="card-icon">?????</div>
             <h3>Chefs Especializados</h3>
-            <p>Con más de 20 años de experiencia en la gastronomía china tradicional</p>
+            <p>Con mï¿½s de 20 aï¿½os de experiencia en la gastronomï¿½a china tradicional</p>
           </div>
           <div className="info-card">
             <div className="card-icon">??</div>
@@ -101,40 +99,40 @@ const Home = () => {
           <div className="info-card">
             <div className="card-icon">??</div>
             <h3>Ambiente Familiar</h3>
-            <p>Un lugar perfecto para disfrutar en compañía de amigos y familia</p>
+            <p>Un lugar perfecto para disfrutar en compaï¿½ï¿½a de amigos y familia</p>
           </div>
         </div>
       </section>
 
-      {/* Menú Destacado */}
+      {/* Menï¿½ Destacado */}
       <section className="featured-section">
         <h2>Especialidades de la Casa</h2>
         <div className="featured-items">
           <div className="featured-item">
             <div className="item-image">??</div>
-            <h4>Pato Pekinés</h4>
+            <h4>Pato Pekinï¿½s</h4>
             <p>Receta tradicional con salsa agridulce</p>
-            <p className="item-price">€18.50</p>
+            <p className="item-price">ï¿½18.50</p>
           </div>
           <div className="featured-item">
             <div className="item-image">??</div>
             <h4>Arroz Frito Especial</h4>
             <p>Con camarones, huevo y vegetales</p>
-            <p className="item-price">€12.99</p>
+            <p className="item-price">ï¿½12.99</p>
           </div>
           <div className="featured-item">
             <div className="item-image">??</div>
             <h4>Noodles Salteados</h4>
             <p>A la manera de Chongqing</p>
-            <p className="item-price">€11.50</p>
+            <p className="item-price">ï¿½11.50</p>
           </div>
         </div>
       </section>
 
       {/* Call to Action */}
       <section className="cta-section">
-        <h2>¿Listo para reservar?</h2>
-        <p>Haz tu reserva ahora y disfruta de una experiencia culinaria única</p>
+        <h2>ï¿½Listo para reservar?</h2>
+        <p>Haz tu reserva ahora y disfruta de una experiencia culinaria ï¿½nica</p>
         {user ? (
           <button 
             onClick={() => navigate("/reservations")} 
@@ -144,12 +142,12 @@ const Home = () => {
           </button>
         ) : (
           <>
-            <p className="cta-login-message">Inicia sesión para hacer una reserva</p>
+            <p className="cta-login-message">Inicia sesiï¿½n para hacer una reserva</p>
             <button 
               onClick={() => navigate("/login")} 
               className="btn-primary btn-large"
             >
-              ?? Iniciar Sesión
+              ?? Iniciar Sesiï¿½n
             </button>
           </>
         )}
@@ -167,11 +165,11 @@ const Home = () => {
           <div className="footer-section">
             <h4>Horario</h4>
             <p>Lunes a Jueves: 12:00 - 23:00</p>
-            <p>Viernes a Sábado: 12:00 - 00:30</p>
+            <p>Viernes a Sï¿½bado: 12:00 - 00:30</p>
             <p>Domingo: 13:00 - 23:00</p>
           </div>
           <div className="footer-section">
-            <h4>Síguenos</h4>
+            <h4>Sï¿½guenos</h4>
             <p>Facebook | Instagram | TikTok</p>
           </div>
         </div>
