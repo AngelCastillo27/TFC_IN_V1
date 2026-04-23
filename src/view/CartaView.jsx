@@ -2,20 +2,20 @@ import React from 'react';
 
 const menuData = {
   alergenos: [
-    { id: 1, nombre: "Cereales con gluten" },
-    { id: 2, nombre: "Crustáceos" },
-    { id: 3, nombre: "Huevos" },
-    { id: 4, nombre: "Pescado" },
-    { id: 5, nombre: "Cacahuetes" },
-    { id: 6, nombre: "Soja" },
-    { id: 7, nombre: "Lácteos" },
-    { id: 8, nombre: "Frutos secos" },
-    { id: 9, nombre: "Apio" },
-    { id: 10, nombre: "Mostaza" },
-    { id: 11, nombre: "Sésamo" },
-    { id: 12, nombre: "Sulfitos" },
-    { id: 13, nombre: "Altramuz" },
-    { id: 14, nombre: "Moluscos" }
+    { id: 1, nombre: "Cereales con gluten", imagen: "/assets/ico_cereales.png" },
+    { id: 2, nombre: "Crustáceos", imagen: "/assets/ico_crustaceos.png" },
+    { id: 3, nombre: "Huevos", imagen: "/assets/ico_huevos.png" },
+    { id: 4, nombre: "Pescado", imagen: "/assets/ico_pescado.png" },
+    { id: 5, nombre: "Cacahuetes", imagen: "/assets/ico_cacahuetes.png" },
+    { id: 6, nombre: "Soja", imagen: "/assets/ico_soja.png" },
+    { id: 7, nombre: "Lácteos", imagen: "/assets/ico_lacteos.png" },
+    { id: 8, nombre: "Frutos secos", imagen: "/assets/ico_frutos_secos.png" },
+    { id: 9, nombre: "Apio", imagen: "/assets/ico_apio.png" },
+    { id: 10, nombre: "Mostaza", imagen: "/assets/ico_mostaza.png" },
+    { id: 11, nombre: "Sésamo", imagen: "/assets/ico_sesamo.png" },
+    { id: 12, nombre: "Sulfitos", imagen: "/assets/ico_sulfitos.png" },
+    { id: 13, nombre: "Altramuz", imagen: "/assets/ico_altramuz.png" },
+    { id: 14, nombre: "Moluscos", imagen: "/assets/ico_moluscos.png" }
   ],
 
   menu: [
@@ -359,9 +359,32 @@ const menuData = {
   ]
 };
 
+const ImagenAlergeno = ({ idAlergeno }) => {
+  const infoAlergeno = menuData.alergenos.find(a => a.id === idAlergeno);
+  
+  if (!infoAlergeno) return null;
+
+  return (
+    <img 
+      src={infoAlergeno.imagen}
+      alt={infoAlergeno.nombre}
+      title={infoAlergeno.nombre}
+      className="me-1 border rounded"
+      style={{ 
+        width: '2rem',
+        height: '2rem', 
+        objectFit: 'contain',
+        backgroundColor: '#fff',
+        padding: '2px'
+      }}
+    />
+  );
+};
+
 export default function CartaView() {
   return (
     <div className="container py-5 px-3" style={{ maxWidth: '900px' }}>
+      {/* Encabezado */}
       <header className="text-center mb-5">
         <h2 className="display-5 fw-bold text-dark text-uppercase" style={{ letterSpacing: '0.15em' }}>
           Nuestra Carta
@@ -384,16 +407,25 @@ export default function CartaView() {
               {seccion.platos.map((plato, pIdx) => (
                 <div key={pIdx} className="col-12 col-md-6">
                   <div className="d-flex justify-content-between align-items-start h-100 border-0">
-                    <div className="pe-3">
+                    <div className="pe-3 flex-grow-1">
                       <h5 className="fw-bold text-dark mb-1" style={{ fontSize: '1.1rem' }}>
                         {plato.nombre}
                       </h5>
                       {plato.descripcion && (
-                        <p className="text-muted mb-0 small" style={{ lineHeight: '1.2' }}>
+                        <p className="text-muted mb-1 small" style={{ lineHeight: '1.2' }}>
                           {plato.descripcion}
                         </p>
                       )}
+                      
+                      {plato.alergenos && plato.alergenos.length > 0 && (
+                        <div className="d-flex flex-wrap mt-2">
+                          {plato.alergenos.map(id => (
+                            <ImagenAlergeno key={id} idAlergeno={id} />
+                          ))}
+                        </div>
+                      )}
                     </div>
+                    
                     <span className="fw-bold text-dark px-2 py-1 rounded" 
                           style={{ backgroundColor: '#f3f4f6', minWidth: 'fit-content' }}>
                       {typeof plato.precio === 'number' ? `${plato.precio.toFixed(2)}€` : plato.precio}
@@ -412,11 +444,33 @@ export default function CartaView() {
                 borderColor: '#fde68a',
                 color: '#374151'
               }}>
-        <p className="fw-bold mb-1">Información sobre alérgenos:</p>
-        <p className="small mb-0">
+        <p className="fw-bold mb-3 h5 text-dark">Información sobre alérgenos:</p>
+
+        <p className="small mb-0 mt-4 fst-italic">
           Si usted tiene alguna alergia alimentaria, por favor póngase en contacto con nuestro personal. 
           Debido a nuestra elaboración artesanal, todos los platos pueden contener trazas de alérgenos.
         </p>
+        
+        <div className="row g-3">
+          {menuData.alergenos.map(alergeno => (
+            <div key={alergeno.id} className="col-12 col-sm-6 col-md-4 d-flex align-items-center">
+              <img 
+                src={alergeno.imagen}
+                alt={alergeno.nombre}
+                className="me-2 border rounded"
+                style={{ 
+                  width: '3rem',
+                  height: '3rem', 
+                  objectFit: 'contain', 
+                  backgroundColor: '#fff', 
+                  padding: '4px' 
+                }}
+              />
+              <span className="text-muted small">{alergeno.nombre}</span>
+            </div>
+          ))}
+        </div>
+      
       </footer>
     </div>
   );
