@@ -11,12 +11,14 @@
  * DEPLOY: firebase deploy --only functions
  */
 
-const { setGlobalOptions }       = require("firebase-functions");
-const { onRequest }              = require("firebase-functions/https");
-const { onDocumentCreated,
-        onDocumentWritten }      = require("firebase-functions/firestore");
-const logger                     = require("firebase-functions/logger");
-const admin                      = require("firebase-admin");
+const { setGlobalOptions } = require("firebase-functions");
+const { onRequest } = require("firebase-functions/https");
+const {
+  onDocumentCreated,
+  onDocumentWritten,
+} = require("firebase-functions/firestore");
+const logger = require("firebase-functions/logger");
+const admin = require("firebase-admin");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -28,7 +30,7 @@ setGlobalOptions({ maxInstances: 10, region: "us-central1" });
 //    Garantiza que SIEMPRE exista el documento aunque el cliente falle.
 // ════════════════════════════════════════════════════════════════════════════
 exports.onUserCreated = onDocumentCreated("users/{uid}", async (event) => {
-  const uid  = event.params.uid;
+  const uid = event.params.uid;
   const data = event.data?.data();
 
   if (!data) {
@@ -36,7 +38,11 @@ exports.onUserCreated = onDocumentCreated("users/{uid}", async (event) => {
     return;
   }
 
-  logger.info("Nuevo usuario registrado:", { uid, email: data.email, role: data.role });
+  logger.info("Nuevo usuario registrado:", {
+    uid,
+    email: data.email,
+    role: data.role,
+  });
 
   // Si el documento no tiene rol, forzar "comensal" como fallback
   if (!data.role) {
@@ -90,8 +96,8 @@ exports.sendWelcomeEmail = onRequest(async (req, res) => {
 
     // Por ahora: log de simulacion
     logger.info("EMAIL DE BIENVENIDA (simulado):", {
-      to:      email,
-      name:    name,
+      to: email,
+      name: name,
       subject: "Bienvenido a Dragon Palace",
     });
 
@@ -114,26 +120,30 @@ exports.onReservationWrite = onDocumentWritten(
   "reservations/{reservationId}",
   async (event) => {
     const before = event.data?.before?.data();
-    const after  = event.data?.after?.data();
+    const after = event.data?.after?.data();
 
     // Determinar que mesa(s) afectar
     const tableIdBefore = before?.tableId || null;
-    const tableIdAfter  = after?.tableId  || null;
+    const tableIdAfter = after?.tableId || null;
 
     // Funcion para recalcular el numero de reservas activas de una mesa
     const updateTableCount = async (tableId) => {
       if (!tableId) return;
       try {
-        const snap = await db.collection("reservations")
+        const snap = await db
+          .collection("reservations")
           .where("tableId", "==", tableId)
-          .where("status",  "!=", "cancelada")
+          .where("status", "!=", "cancelada")
           .get();
 
         await db.collection("tables").doc(tableId).update({
           reservationCount: snap.size,
         });
 
-        logger.info("Mesa actualizada:", { tableId, reservationCount: snap.size });
+        logger.info("Mesa actualizada:", {
+          tableId,
+          reservationCount: snap.size,
+        });
       } catch (err) {
         logger.error("Error actualizando mesa:", { tableId, err: err.message });
       }
@@ -147,7 +157,7 @@ exports.onReservationWrite = onDocumentWritten(
     if (tableIdAfter) {
       await updateTableCount(tableIdAfter);
     }
-  }
+  },
 );
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -157,55 +167,78 @@ exports.onReservationWrite = onDocumentWritten(
 //    Una vez ejecutada, las mesas quedan en Firestore y esta funcion
 //    ya no hace falta volver a llamarla.
 // ════════════════════════════════════════════════════════════════════════════
-exports.initTables = onRequest(async (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
+exports.initTables = onRequest(
+  {
+    region: "us-central1",
+    cors: "*",
+    invoker: "public",
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
 
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Solo POST" });
-    return;
-  }
-
-  try {
-    // Capacidades de las 20 mesas (ajusta a tu gusto)
-    const capacities = [
-      2, 2, 4, 4, 4,   // Mesas 1-5
-      4, 4, 6, 6, 6,   // Mesas 6-10
-      6, 4, 4, 4, 4,   // Mesas 11-15
-      8, 8, 2, 2, 10,  // Mesas 16-20
-    ];
-
-    const batch = db.batch();
-
-    for (let i = 1; i <= 20; i++) {
-      const tableRef = db.collection("tables").doc("mesa-" + i);
-
-      // Si ya existe, no sobreescribir (merge: false evita borrar datos)
-      const existing = await tableRef.get();
-      if (existing.exists) {
-        logger.info("Mesa ya existe, saltando:", i);
-        continue;
-      }
-
-      batch.set(tableRef, {
-        tableNumber:      i,
-        number:           i,
-        capacity:         capacities[i - 1] || 4,
-        active:           true,
-        available:        true,
-        reservationCount: 0,
-        createdAt:        admin.firestore.FieldValue.serverTimestamp(),
-      });
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Solo POST" });
+      return;
     }
 
-    await batch.commit();
-    logger.info("20 mesas inicializadas correctamente.");
+    try {
+      // Capacidades de las 20 mesas (ajusta a tu gusto)
+      const capacities = [
+        2,
+        2,
+        4,
+        4,
+        4, // Mesas 1-5
+        4,
+        4,
+        6,
+        6,
+        6, // Mesas 6-10
+        6,
+        4,
+        4,
+        4,
+        4, // Mesas 11-15
+        8,
+        8,
+        2,
+        2,
+        10, // Mesas 16-20
+      ];
 
-    res.status(200).json({
-      success: true,
-      message: "Mesas inicializadas. Revisa Firestore > coleccion 'tables'.",
-    });
-  } catch (error) {
-    logger.error("Error inicializando mesas:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
+      const batch = db.batch();
+
+      for (let i = 1; i <= 20; i++) {
+        const tableRef = db.collection("tables").doc("mesa-" + i);
+
+        // Si ya existe, no sobreescribir (merge: false evita borrar datos)
+        const existing = await tableRef.get();
+        if (existing.exists) {
+          logger.info("Mesa ya existe, saltando:", i);
+          continue;
+        }
+
+        batch.set(tableRef, {
+          tableNumber: i,
+          number: i,
+          capacity: capacities[i - 1] || 4,
+          active: true,
+          available: true,
+          reservationCount: 0,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+      logger.info("20 mesas inicializadas correctamente.");
+
+      res.status(200).json({
+        success: true,
+        message: "Mesas inicializadas. Revisa Firestore > coleccion 'tables'.",
+      });
+    } catch (error) {
+      logger.error("Error inicializando mesas:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+);
