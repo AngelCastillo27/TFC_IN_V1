@@ -4,12 +4,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../controllers/useAuth";
 import MenuService from "../models/MenuService";
 import "../styles/ChineseStyle.css";
 
 const Menu = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user } = useAuth();
   const [allMenuItems, setAllMenuItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(true);
