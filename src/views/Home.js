@@ -22,7 +22,7 @@ const Home = () => {
           </div>
           <nav className="header-nav">
             <button onClick={() => navigate("/menu")} className="nav-btn">
-              ?? Ver Men�
+              ?? Ver MENU
             </button>
             {user ? (
               <>
@@ -65,7 +65,7 @@ const Home = () => {
               onClick={() => navigate("/menu")}
               className="btn-primary btn-large"
             >
-              ??? Explorar Men�
+              ??? Explorar MENU
             </button>
             <button
               onClick={() =>
@@ -182,7 +182,7 @@ const Home = () => {
         </div>
         <div className="footer-bottom">
           <p>
-            &copy; 2024 Tsinghe Cocina Fusión. Todos los derechos reservados.
+            &copy; 2026 Tsinghe Cocina Fusión. Todos los derechos reservados.
           </p>
         </div>
       </footer>

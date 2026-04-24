@@ -1,8 +1,8 @@
 /* Estilos Chinos - Paleta de colores tradicional chino */
 :root {
-  --chinese-red: #dc143c; /* Rojo chino tradicional */
+  --chinese-red: #10621c; /* Rojo chino tradicional */
   --chinese-gold: #ffd700; /* Oro */
-  --chinese-dark-red: #8b0000; /* Rojo oscuro */
+  --chinese-dark-red: #0b3c0a; /* Rojo oscuro */
   --chinese-light-gold: #fffacd; /* Oro claro */
   --chinese-black: #1a1a1a; /* Negro profundo */
   --chinese-cream: #f5f5dc; /* Crema */
@@ -564,7 +564,7 @@ table tr:hover {
 .nav-btn {
   padding: 10px 20px;
   background-color: transparent;
-  color: #E8E8E8;
+  color: #e8e8e8;
   border: 2px solid var(--chinese-gold);
   border-radius: 6px;
   font-size: 14px;
@@ -595,19 +595,32 @@ table tr:hover {
 }
 
 .nav-btn.btn-register {
-  background: linear-gradient(135deg, var(--chinese-red) 0%, var(--chinese-dark-red) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--chinese-red) 0%,
+    var(--chinese-dark-red) 100%
+  );
   border: 2px solid var(--chinese-red);
   color: white;
 }
 
 .nav-btn.btn-register:hover {
-  background: linear-gradient(135deg, var(--chinese-dark-red) 0%, var(--chinese-red) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--chinese-dark-red) 0%,
+    var(--chinese-red) 100%
+  );
   border-color: var(--chinese-gold);
 }
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, rgba(220, 20, 60, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%),
+  background:
+    linear-gradient(
+      135deg,
+      rgba(220, 20, 60, 0.1) 0%,
+      rgba(255, 215, 0, 0.1) 100%
+    ),
     url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><rect fill="%23f5f5dc" width="1200" height="400"/><circle cx="200" cy="100" r="80" fill="%23dc143c" opacity="0.05"/><circle cx="1000" cy="300" r="120" fill="%23ffd700" opacity="0.05"/></svg>');
   background-size: cover;
   background-attachment: fixed;
@@ -715,7 +728,11 @@ table tr:hover {
 
 /* Featured Section */
 .featured-section {
-  background: linear-gradient(135deg, var(--chinese-light-gold) 0%, #fffacd 100%);
+  background: linear-gradient(
+    135deg,
+    var(--chinese-light-gold) 0%,
+    #fffacd 100%
+  );
   padding: 60px 30px;
   border-top: 3px solid var(--chinese-red);
   border-bottom: 3px solid var(--chinese-red);
@@ -785,7 +802,11 @@ table tr:hover {
 .cta-section {
   padding: 60px 30px;
   text-align: center;
-  background: linear-gradient(135deg, rgba(220, 20, 60, 0.05) 0%, rgba(139, 0, 0, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(220, 20, 60, 0.05) 0%,
+    rgba(139, 0, 0, 0.05) 100%
+  );
   max-width: 800px;
   margin: 0 auto;
 }

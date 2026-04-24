@@ -1,8 +1,8 @@
 // Controlador: useUsers.js
 // Hook para manejar CRUD de usuarios.
 
-import { useState, useEffect } from 'react';
-import UserService from '../models/UserService';
+import { useState, useEffect } from "react";
+import UserService from "../models/UserService";
 
 const useUsers = () => {
   const [users, setUsers] = useState([]);
@@ -65,7 +65,7 @@ const useUsers = () => {
     createUser,
     updateUser,
     deleteUser,
-    loadUsers
+    loadUsers,
   };
 };
 
