@@ -1,5 +1,5 @@
 /**
- * DRAGON PALACE - Cloud Functions
+ * Tsinghe Cocina Fusión - Cloud Functions
  * Funciones del servidor para el restaurante.
  *
  * FUNCIONES:
@@ -90,15 +90,15 @@ exports.sendWelcomeEmail = onRequest(async (req, res) => {
     // await sgMail.send({
     //   to:      email,
     //   from:    "noreply@dragonpalace.es",
-    //   subject: "Bienvenido a Dragon Palace",
-    //   html:    `<h1>Hola ${name}!</h1><p>Gracias por registrarte en Dragon Palace.</p>`,
+    //   subject: "Bienvenido a Tsinghe Cocina Fusión",
+    //   html:    `<h1>Hola ${name}!</h1><p>Gracias por registrarte en Tsinghe Cocina Fusión.</p>`,
     // });
 
     // Por ahora: log de simulacion
     logger.info("EMAIL DE BIENVENIDA (simulado):", {
       to: email,
       name: name,
-      subject: "Bienvenido a Dragon Palace",
+      subject: "Bienvenido a Tsinghe Cocina Fusión",
     });
 
     res.status(200).json({

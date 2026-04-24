@@ -19,12 +19,12 @@ const WelcomePanel = ({ role }) => (
       {role === "admin" ? "🛠️" : "🍽️"}
     </div>
     <h2 style={{ color: "#DC143C", marginBottom: "12px" }}>
-      {role === "admin" ? "Panel de Administracion" : "Bienvenido a Dragon Palace"}
+      {role === "admin" ? "Panel de Administracion" : "Bienvenido a Tsinghe Cocina Fusión"}
     </h2>
     <p style={{ color: "#555", maxWidth: "480px", margin: "0 auto", lineHeight: "1.6" }}>
       {role === "admin"
         ? "Desde aqui puedes gestionar el menu del restaurante, las mesas, las ofertas y todas las reservas."
-        : "Aqui puedes crear, consultar y cancelar tus reservas en Dragon Palace."}
+        : "Aqui puedes crear, consultar y cancelar tus reservas en Tsinghe Cocina Fusión."}
     </p>
 
     {/* Tarjetas informativas para admin */}

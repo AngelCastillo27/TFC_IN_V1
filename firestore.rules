@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================
-// DRAGON PALACE - Reglas de seguridad Firestore
+// Tsinghe Cocina Fusión - Reglas de seguridad Firestore
 // Roles: "admin" | "comensal"
 // ============================================================
 
