@@ -1,6 +1,6 @@
 // Vista: ForgotPassword.js
-// Componente para recuperación de contraseña
-// Envía email con link de reset usando Firebase Auth
+// Componente para recuperaciï¿½n de contraseï¿½a
+// Envï¿½a email con link de reset usando Firebase Auth
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -28,7 +28,7 @@ const ForgotPassword = () => {
     if (error) setError(null);
   };
 
-  // Manejar envío del formulario
+  // Manejar envï¿½o del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -40,34 +40,34 @@ const ForgotPassword = () => {
     }
 
     if (!validateEmail(email)) {
-      setError("Por favor ingresa un email válido");
+      setError("Por favor ingresa un email vï¿½lido");
       return;
     }
 
     setLoading(true);
 
     try {
-      // Enviar email de reset de contraseña
+      // Enviar email de reset de contraseï¿½a
       await sendPasswordResetEmail(auth, email);
-      
+
       setSuccess(true);
       setSubmitted(true);
       setEmail("");
-      
-      // Mostrar el mensaje de éxito durante 5 segundos antes de redirigir
+
+      // Mostrar el mensaje de ï¿½xito durante 5 segundos antes de redirigir
       setTimeout(() => {
         navigate("/login");
       }, 5000);
     } catch (err) {
       setLoading(false);
-      
+
       // Manejar diferentes tipos de errores
       if (err.code === "auth/user-not-found") {
-        setError("No se encontró una cuenta con este email");
+        setError("No se encontrï¿½ una cuenta con este email");
       } else if (err.code === "auth/invalid-email") {
-        setError("El email no es válido");
+        setError("El email no es vï¿½lido");
       } else if (err.code === "auth/too-many-requests") {
-        setError("Demasiados intentos. Por favor intenta más tarde");
+        setError("Demasiados intentos. Por favor intenta mï¿½s tarde");
       } else {
         setError("Error al enviar el email. Por favor intenta de nuevo");
       }
@@ -83,7 +83,7 @@ const ForgotPassword = () => {
     <div className="forgot-password-container">
       <div className="forgot-password-card">
         <div className="forgot-password-header">
-          <h1>?? Recuperar Contraseña</h1>
+          <h1>?? Recuperar Contraseï¿½a</h1>
           <p className="forgot-password-subtitle">
             Te ayudaremos a recuperar acceso a tu cuenta
           </p>
@@ -92,42 +92,35 @@ const ForgotPassword = () => {
         {success && submitted ? (
           <div className="success-section">
             <div className="success-icon">?</div>
-            <h2>¡Email enviado!</h2>
+            <h2>ï¿½Email enviado!</h2>
             <p className="success-message">
-              Hemos enviado un email a <strong>{email}</strong> con instrucciones 
-              para recuperar tu contraseña.
+              Hemos enviado un email a <strong>{email}</strong> con
+              instrucciones para recuperar tu contraseï¿½a.
             </p>
             <div className="success-steps">
-              <p className="step-title">Próximos pasos:</p>
+              <p className="step-title">Prï¿½ximos pasos:</p>
               <ol>
-                <li>Revisa tu email (también la carpeta de spam)</li>
-                <li>Haz clic en el enlace de recuperación</li>
-                <li>Crea una nueva contraseña</li>
-                <li>Inicia sesión con tu nueva contraseña</li>
+                <li>Revisa tu email (tambiï¿½n la carpeta de spam)</li>
+                <li>Haz clic en el enlace de recuperaciï¿½n</li>
+                <li>Crea una nueva contraseï¿½a</li>
+                <li>Inicia sesiï¿½n con tu nueva contraseï¿½a</li>
               </ol>
             </div>
             <p className="redirect-message">
-              Serás redirigido al login en unos segundos...
+              Serï¿½s redirigido al login en unos segundos...
             </p>
-            <button 
-              onClick={handleBackToLogin}
-              className="btn-primary"
-            >
+            <button onClick={handleBackToLogin} className="btn-primary">
               Volver al Login
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="forgot-password-form">
             {/* Mensaje de error */}
-            {error && (
-              <div className="error-message error-box">
-                ? {error}
-              </div>
-            )}
+            {error && <div className="error-message error-box">? {error}</div>}
 
             {/* Campo de email */}
             <div className="form-group">
-              <label htmlFor="email">Correo Electrónico</label>
+              <label htmlFor="email">Correo Electrï¿½nico</label>
               <p className="field-description">
                 Ingresa el email asociado a tu cuenta
               </p>
@@ -144,14 +137,14 @@ const ForgotPassword = () => {
 
             {/* Botones */}
             <div className="form-buttons">
-              <button 
+              <button
                 type="submit"
                 disabled={loading}
                 className="btn-primary btn-submit"
               >
-                {loading ? "Enviando..." : "Enviar Email de Recuperación"}
+                {loading ? "Enviando..." : "Enviar Email de Recuperaciï¿½n"}
               </button>
-              <button 
+              <button
                 type="button"
                 onClick={handleBackToLogin}
                 disabled={loading}
@@ -163,17 +156,17 @@ const ForgotPassword = () => {
           </form>
         )}
 
-        {/* Información adicional */}
+        {/* Informaciï¿½n adicional */}
         {!submitted && (
           <div className="forgot-password-info">
-            <h3>¿Necesitas ayuda?</h3>
+            <h3>ï¿½Necesitas ayuda?</h3>
             <ul>
               <li>Si no recibes el email, revisa tu carpeta de spam</li>
-              <li>El enlace de recuperación es válido por 1 hora</li>
+              <li>El enlace de recuperaciï¿½n es vï¿½lido por 1 hora</li>
               <li>Si tienes problemas, contacta con nuestro soporte</li>
             </ul>
             <p className="support-contact">
-              ?? Soporte: info@dragonpalace.es
+              ?? Soporte: info@Tsinghe Cocina FusiÃ³n
             </p>
           </div>
         )}

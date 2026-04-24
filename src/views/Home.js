@@ -17,7 +17,7 @@ const Home = () => {
       <header className="home-header">
         <div className="header-content">
           <div className="restaurant-logo">
-            <h1>?? Dragon Palace</h1>
+            <h1>🍜 Tsinghe Cocina Fusión</h1>
             <p className="tagline">Aut�ntica Cocina China</p>
           </div>
           <nav className="header-nav">
@@ -26,29 +26,23 @@ const Home = () => {
             </button>
             {user ? (
               <>
-                <button 
-                  onClick={() => navigate("/dashboard")} 
+                <button
+                  onClick={() => navigate("/dashboard")}
                   className="nav-btn"
                 >
                   ?? Mi Perfil
                 </button>
-                <button 
-                  onClick={() => logout()} 
-                  className="nav-btn btn-logout"
-                >
+                <button onClick={() => logout()} className="nav-btn btn-logout">
                   Cerrar Sesi�n
                 </button>
               </>
             ) : (
               <>
-                <button 
-                  onClick={() => navigate("/login")} 
-                  className="nav-btn"
-                >
+                <button onClick={() => navigate("/login")} className="nav-btn">
                   Iniciar Sesi�n
                 </button>
-                <button 
-                  onClick={() => navigate("/register")} 
+                <button
+                  onClick={() => navigate("/register")}
                   className="nav-btn btn-register"
                 >
                   Registrarse
@@ -62,19 +56,21 @@ const Home = () => {
       {/* Secci�n Hero */}
       <section className="hero-section">
         <div className="hero-content">
-          <h2>�Bienvenido a Dragon Palace!</h2>
+          <h2>¡Bienvenido a Tsinghe Cocina Fusión!</h2>
           <p className="hero-subtitle">
             Descubre la m�s aut�ntica cocina china en un ambiente acogedor
           </p>
           <div className="hero-buttons">
-            <button 
-              onClick={() => navigate("/menu")} 
+            <button
+              onClick={() => navigate("/menu")}
               className="btn-primary btn-large"
             >
               ??? Explorar Men�
             </button>
-            <button 
-              onClick={() => user ? navigate("/reservations") : navigate("/login")} 
+            <button
+              onClick={() =>
+                user ? navigate("/reservations") : navigate("/login")
+              }
               className="btn-secondary btn-large"
             >
               ?? Reservar Mesa
@@ -89,17 +85,24 @@ const Home = () => {
           <div className="info-card">
             <div className="card-icon">?????</div>
             <h3>Chefs Especializados</h3>
-            <p>Con m�s de 20 a�os de experiencia en la gastronom�a china tradicional</p>
+            <p>
+              Con m�s de 20 a�os de experiencia en la gastronom�a china
+              tradicional
+            </p>
           </div>
           <div className="info-card">
             <div className="card-icon">??</div>
             <h3>Ingredientes Premium</h3>
-            <p>Seleccionamos cuidadosamente los mejores ingredientes importados</p>
+            <p>
+              Seleccionamos cuidadosamente los mejores ingredientes importados
+            </p>
           </div>
           <div className="info-card">
             <div className="card-icon">??</div>
             <h3>Ambiente Familiar</h3>
-            <p>Un lugar perfecto para disfrutar en compa��a de amigos y familia</p>
+            <p>
+              Un lugar perfecto para disfrutar en compa��a de amigos y familia
+            </p>
           </div>
         </div>
       </section>
@@ -132,19 +135,23 @@ const Home = () => {
       {/* Call to Action */}
       <section className="cta-section">
         <h2>�Listo para reservar?</h2>
-        <p>Haz tu reserva ahora y disfruta de una experiencia culinaria �nica</p>
+        <p>
+          Haz tu reserva ahora y disfruta de una experiencia culinaria �nica
+        </p>
         {user ? (
-          <button 
-            onClick={() => navigate("/reservations")} 
+          <button
+            onClick={() => navigate("/reservations")}
             className="btn-primary btn-large"
           >
             ?? Reservar Ahora
           </button>
         ) : (
           <>
-            <p className="cta-login-message">Inicia sesi�n para hacer una reserva</p>
-            <button 
-              onClick={() => navigate("/login")} 
+            <p className="cta-login-message">
+              Inicia sesi�n para hacer una reserva
+            </p>
+            <button
+              onClick={() => navigate("/login")}
               className="btn-primary btn-large"
             >
               ?? Iniciar Sesi�n
@@ -157,10 +164,10 @@ const Home = () => {
       <footer className="home-footer">
         <div className="footer-content">
           <div className="footer-section">
-            <h4>Dragon Palace</h4>
+            <h4>Tsinghe Cocina Fusión</h4>
             <p>Calle Principal 123</p>
             <p>?? +34 900 123 456</p>
-            <p>?? info@dragonpalace.es</p>
+            <p>?? info@tsinghefusion.es</p>
           </div>
           <div className="footer-section">
             <h4>Horario</h4>
@@ -174,7 +181,9 @@ const Home = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2024 Dragon Palace. Todos los derechos reservados.</p>
+          <p>
+            &copy; 2024 Tsinghe Cocina Fusión. Todos los derechos reservados.
+          </p>
         </div>
       </footer>
     </div>

@@ -1,6 +1,6 @@
 // Vista: Register.js
 // Componente de registro de nuevos usuarios
-// Incluye validación de formulario y manejo de errores
+// Incluye validaciï¿½n de formulario y manejo de errores
 
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -23,7 +23,7 @@ const Register = () => {
   // Manejar cambios en los inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -47,25 +47,25 @@ const Register = () => {
     }
     const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+\$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Por favor ingresa un email válido");
+      setError("Por favor ingresa un email vï¿½lido");
       return false;
     }
     if (!formData.password) {
-      setError("La contraseña es requerida");
+      setError("La contraseï¿½a es requerida");
       return false;
     }
     if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+      setError("La contraseï¿½a debe tener al menos 6 caracteres");
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
+      setError("Las contraseï¿½as no coinciden");
       return false;
     }
     return true;
   };
 
-  // Manejar envío del formulario
+  // Manejar envï¿½o del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -83,7 +83,7 @@ const Register = () => {
       const result = await AuthService.registerWithEmail(
         formData.email,
         formData.password,
-        formData.name.trim()
+        formData.name.trim(),
       );
 
       setLoading(false);
@@ -96,13 +96,15 @@ const Register = () => {
           password: "",
           confirmPassword: "",
         });
-        
-        // Mostrar mensaje de éxito y redirigir después de 2 segundos
+
+        // Mostrar mensaje de ï¿½xito y redirigir despuï¿½s de 2 segundos
         setTimeout(() => {
           navigate("/login");
         }, 2000);
       } else {
-        setError(result.error || "Error al registrarse. Por favor intenta de nuevo");
+        setError(
+          result.error || "Error al registrarse. Por favor intenta de nuevo",
+        );
       }
     } catch (err) {
       setLoading(false);
@@ -115,20 +117,18 @@ const Register = () => {
       <div className="register-card">
         <div className="register-header">
           <h1>?? Registrarse</h1>
-          <p className="register-subtitle">Crea tu cuenta en Dragon Palace</p>
+          <p className="register-subtitle">
+            Crea tu cuenta en Tsinghe Cocina FusiÃ³n
+          </p>
         </div>
 
         {/* Mensaje de error */}
-        {error && (
-          <div className="error-message error-box">
-            ? {error}
-          </div>
-        )}
+        {error && <div className="error-message error-box">? {error}</div>}
 
-        {/* Mensaje de éxito */}
+        {/* Mensaje de ï¿½xito */}
         {success && (
           <div className="success-message success-box">
-            ? ¡Registro exitoso! Redirigiendo al login...
+            ? ï¿½Registro exitoso! Redirigiendo al login...
           </div>
         )}
 
@@ -141,7 +141,7 @@ const Register = () => {
               id="name"
               type="text"
               name="name"
-              placeholder="Ej: Juan García"
+              placeholder="Ej: Juan Garcï¿½a"
               value={formData.name}
               onChange={handleInputChange}
               required
@@ -162,38 +162,38 @@ const Register = () => {
             />
           </div>
 
-          {/* Campo Contraseña */}
+          {/* Campo Contraseï¿½a */}
           <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
+            <label htmlFor="password">Contraseï¿½a</label>
             <input
               id="password"
               type="password"
               name="password"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mï¿½nimo 6 caracteres"
               value={formData.password}
               onChange={handleInputChange}
               required
             />
-            <small className="form-hint">Mínimo 6 caracteres</small>
+            <small className="form-hint">Mï¿½nimo 6 caracteres</small>
           </div>
 
-          {/* Campo Confirmar Contraseña */}
+          {/* Campo Confirmar Contraseï¿½a */}
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirmar Contraseña</label>
+            <label htmlFor="confirmPassword">Confirmar Contraseï¿½a</label>
             <input
               id="confirmPassword"
               type="password"
               name="confirmPassword"
-              placeholder="Repite tu contraseña"
+              placeholder="Repite tu contraseï¿½a"
               value={formData.confirmPassword}
               onChange={handleInputChange}
               required
             />
           </div>
 
-          {/* Botón de envío */}
-          <button 
-            type="submit" 
+          {/* Botï¿½n de envï¿½o */}
+          <button
+            type="submit"
             disabled={loading}
             className="btn-primary btn-register-submit"
           >
@@ -204,20 +204,18 @@ const Register = () => {
         {/* Link al login */}
         <div className="register-footer">
           <p>
-            ¿Ya tienes cuenta?{" "}
-            <button
-              onClick={() => navigate("/login")}
-              className="link-button"
-            >
-              Inicia sesión aquí
+            ï¿½Ya tienes cuenta?{" "}
+            <button onClick={() => navigate("/login")} className="link-button">
+              Inicia sesiï¿½n aquï¿½
             </button>
           </p>
         </div>
 
-        {/* Información adicional */}
+        {/* Informaciï¿½n adicional */}
         <div className="register-info">
           <p className="info-text">
-            Al registrarte, aceptas nuestros términos de servicio y política de privacidad
+            Al registrarte, aceptas nuestros tï¿½rminos de servicio y polï¿½tica de
+            privacidad
           </p>
         </div>
       </div>
