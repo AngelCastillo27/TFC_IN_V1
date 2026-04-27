@@ -66,7 +66,7 @@ const AdminRoute = ({ children, isAuthenticated, loading, role }) => {
 
 // ── App principal ───────────────────────────────────────────────────────────
 function App() {
-  const { user, role, loading, logout } = useAuth();
+  const { user, userName, role, loading, logout } = useAuth();
   const isAuthenticated = !!user;
 
   return (
@@ -102,7 +102,7 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated} loading={loading}>
-              <Dashboard role={role} userId={user?.uid} logout={logout} />
+              <Dashboard role={role} userId={user?.uid} userName={userName} logout={logout} />
             </ProtectedRoute>
           }
         />

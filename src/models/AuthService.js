@@ -10,11 +10,32 @@ import {
   GoogleAuthProvider,
   sendPasswordResetEmail,
   confirmPasswordReset,
+  updatePassword,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  deleteField,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 
 class AuthService {
+  // Método auxiliar para generar token de 3 caracteres
+  generateToken() {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let token = "";
+    for (let i = 0; i < 3; i++) {
+      token += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return token;
+  }
   // Método para login con email y contraseña
   async loginWithEmail(email, password) {
     try {
@@ -193,6 +214,129 @@ class AuthService {
     } catch (error) {
       console.error("Error enviando email:", error);
       // No fallar el registro si el email no se envía
+    }
+  }
+
+  // Método para solicitar reset de contraseña con token
+  async requestPasswordReset(email) {
+    try {
+      console.log("🔐 Solicitando reset de contraseña para:", email);
+
+      // Verificar que el usuario existe
+      const userDoc = await getDoc(doc(db, "users")).catch(() => null);
+      
+      // Generar token
+      const token = this.generateToken();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // Expira en 15 minutos
+
+      console.log("📧 Enviando email con token...");
+
+      // Enviar email con token
+      const response = await fetch(
+        "https://us-central1-digitalizacion-tsinge-fusion.cloudfunctions.net/sendPasswordResetEmail",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            token: token,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        console.error("Error enviando email de reset:", response.statusText);
+        return {
+          success: false,
+          error: "Error al enviar el email de recuperación",
+        };
+      }
+
+      // Guardar token en Firestore en una colección temporal
+      await setDoc(doc(db, "passwordResets", email), {
+        token: token,
+        expiresAt: expiresAt,
+        email: email,
+      });
+
+      console.log("✅ Email de reset enviado exitosamente");
+      return {
+        success: true,
+        message: `Token enviado a ${email}. Expira en 15 minutos.`,
+      };
+    } catch (error) {
+      console.error("❌ Error en reset de contraseña:", error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Método para validar token y resetear contraseña
+  async resetPasswordWithToken(email, token, newPassword) {
+    try {
+      console.log("🔐 Validando token para:", email);
+
+      // Obtener documento de reset
+      const resetDoc = await getDoc(doc(db, "passwordResets", email));
+
+      if (!resetDoc.exists()) {
+        return {
+          success: false,
+          error: "No hay solicitud de reset activa para este email",
+        };
+      }
+
+      const resetData = resetDoc.data();
+
+      // Validar token
+      if (resetData.token !== token.toUpperCase()) {
+        return { success: false, error: "El token es incorrecto" };
+      }
+
+      // Validar que no haya expirado
+      if (new Date() > new Date(resetData.expiresAt.toDate())) {
+        await deleteDoc(doc(db, "passwordResets", email));
+        return { success: false, error: "El token ha expirado" };
+      }
+
+      // Obtener usuario por email
+      const userQuerySnapshot = await getDocs(
+        query(collection(db, "users"), where("email", "==", email))
+      );
+
+      if (userQuerySnapshot.empty) {
+        return { success: false, error: "Usuario no encontrado" };
+      }
+
+      const userId = userQuerySnapshot.docs[0].id;
+
+      // Usar Firebase Admin SDK en el backend para cambiar la contraseña
+      // Por ahora, guardamos una solicitud de cambio que será procesada por un Cloud Function
+      const response = await fetch(
+        "https://us-central1-digitalizacion-tsinge-fusion.cloudfunctions.net/resetPasswordWithToken",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            newPassword: newPassword,
+            token: token,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        console.error("Error reseteando contraseña:", response.statusText);
+        return { success: false, error: "Error al resetear la contraseña" };
+      }
+
+      // Eliminar documento de reset después de usar
+      await deleteDoc(doc(db, "passwordResets", email));
+
+      console.log("✅ Contraseña reseteada exitosamente");
+      return { success: true, message: "Contraseña actualizada exitosamente" };
+    } catch (error) {
+      console.error("❌ Error validando token:", error.message);
+      return { success: false, error: error.message };
     }
   }
 }

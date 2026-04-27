@@ -1,175 +1,248 @@
 // Vista: ForgotPassword.js
-// Componente para recuperaci�n de contrase�a
-// Env�a email con link de reset usando Firebase Auth
+// Componente para recuperación de contraseña con token
+// Paso 1: Solicitar token al email
+// Paso 2: Ingresar token y nueva contraseña
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import AuthService from "../models/AuthService";
 import "../styles/ChineseStyle.css";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [token, setToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [step, setStep] = useState(1); // 1: Pedir email, 2: Pedir token y contraseña
 
   // Validar email
   const validateEmail = (emailValue) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+\$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(emailValue);
   };
 
-  // Manejar cambios en el input
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-    if (error) setError(null);
-  };
-
-  // Manejar env�o del formulario
-  const handleSubmit = async (e) => {
+  // Paso 1: Solicitar token
+  const handleRequestToken = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // Validar email
     if (!email.trim()) {
       setError("Por favor ingresa tu email");
       return;
     }
 
     if (!validateEmail(email)) {
-      setError("Por favor ingresa un email v�lido");
+      setError("Por favor ingresa un email válido");
       return;
     }
 
     setLoading(true);
 
     try {
-      // Enviar email de reset de contrase�a
-      await sendPasswordResetEmail(auth, email);
-
-      setSuccess(true);
-      setSubmitted(true);
-      setEmail("");
-
-      // Mostrar el mensaje de �xito durante 5 segundos antes de redirigir
-      setTimeout(() => {
-        navigate("/login");
-      }, 5000);
-    } catch (err) {
+      const result = await AuthService.requestPasswordReset(email);
       setLoading(false);
 
-      // Manejar diferentes tipos de errores
-      if (err.code === "auth/user-not-found") {
-        setError("No se encontr� una cuenta con este email");
-      } else if (err.code === "auth/invalid-email") {
-        setError("El email no es v�lido");
-      } else if (err.code === "auth/too-many-requests") {
-        setError("Demasiados intentos. Por favor intenta m�s tarde");
+      if (result.success) {
+        setSuccess(true);
+        setStep(2); // Avanzar al paso 2
       } else {
-        setError("Error al enviar el email. Por favor intenta de nuevo");
+        setError(result.error || "Error al solicitar el reset");
       }
+    } catch (err) {
+      setLoading(false);
+      setError(err.message || "Error inesperado");
     }
   };
 
-  // Redirigir al login
-  const handleBackToLogin = () => {
-    navigate("/login");
+  // Paso 2: Validar token y resetear contraseña
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!token.trim()) {
+      setError("Ingresa el token recibido en tu email");
+      return;
+    }
+
+    if (token.length !== 3) {
+      setError("El token debe tener exactamente 3 caracteres");
+      return;
+    }
+
+    if (!newPassword) {
+      setError("Ingresa una nueva contraseña");
+      return;
+    }
+
+    if (newPassword.length < 4) {
+      setError("La contraseña debe tener al menos 4 caracteres");
+      return;
+    }
+
+    if (!confirmPassword) {
+      setError("Confirma tu nueva contraseña");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await AuthService.resetPasswordWithToken(
+        email,
+        token,
+        newPassword
+      );
+      setLoading(false);
+
+      if (result.success) {
+        setSuccess(true);
+        setError("✅ Contraseña actualizada exitosamente");
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } else {
+        setError(result.error || "Error al resetear la contraseña");
+      }
+    } catch (err) {
+      setLoading(false);
+      setError(err.message || "Error inesperado");
+    }
+  };
+
+  // Volver al paso anterior
+  const handleBackToStep1 = () => {
+    setStep(1);
+    setToken("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setError(null);
+    setSuccess(false);
   };
 
   return (
     <div className="forgot-password-container">
       <div className="forgot-password-card">
         <div className="forgot-password-header">
-          <h1>?? Recuperar Contrase�a</h1>
+          <h1>🔐 Recuperar Contraseña</h1>
           <p className="forgot-password-subtitle">
-            Te ayudaremos a recuperar acceso a tu cuenta
+            {step === 1
+              ? "Ingresa tu email para recibir un token"
+              : "Ingresa el token y tu nueva contraseña"}
           </p>
         </div>
 
-        {success && submitted ? (
-          <div className="success-section">
-            <div className="success-icon">?</div>
-            <h2>�Email enviado!</h2>
-            <p className="success-message">
-              Hemos enviado un email a <strong>{email}</strong> con
-              instrucciones para recuperar tu contrase�a.
-            </p>
-            <div className="success-steps">
-              <p className="step-title">Pr�ximos pasos:</p>
-              <ol>
-                <li>Revisa tu email (tambi�n la carpeta de spam)</li>
-                <li>Haz clic en el enlace de recuperaci�n</li>
-                <li>Crea una nueva contrase�a</li>
-                <li>Inicia sesi�n con tu nueva contrase�a</li>
-              </ol>
-            </div>
-            <p className="redirect-message">
-              Ser�s redirigido al login en unos segundos...
-            </p>
-            <button onClick={handleBackToLogin} className="btn-primary">
-              Volver al Login
-            </button>
+        {error && (
+          <div
+            className={
+              error.includes("✅") ? "success-message success-box" : "error-message error-box"
+            }
+          >
+            {error}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="forgot-password-form">
-            {/* Mensaje de error */}
-            {error && <div className="error-message error-box">? {error}</div>}
+        )}
 
-            {/* Campo de email */}
+        {/* PASO 1: Solicitar Token */}
+        {step === 1 && (
+          <form onSubmit={handleRequestToken} className="forgot-password-form">
             <div className="form-group">
-              <label htmlFor="email">Correo Electr�nico</label>
-              <p className="field-description">
-                Ingresa el email asociado a tu cuenta
-              </p>
+              <label htmlFor="email">Email</label>
               <input
                 id="email"
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
-                onChange={handleEmailChange}
-                disabled={loading}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
 
-            {/* Botones */}
-            <div className="form-buttons">
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary btn-submit"
-              >
-                {loading ? "Enviando..." : "Enviar Email de Recuperaci�n"}
-              </button>
-              <button
-                type="button"
-                onClick={handleBackToLogin}
-                disabled={loading}
-                className="btn-secondary btn-back"
-              >
-                Volver al Login
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary btn-full-width"
+            >
+              {loading ? "Enviando..." : "Enviar Token"}
+            </button>
           </form>
         )}
 
-        {/* Informaci�n adicional */}
-        {!submitted && (
-          <div className="forgot-password-info">
-            <h3>�Necesitas ayuda?</h3>
-            <ul>
-              <li>Si no recibes el email, revisa tu carpeta de spam</li>
-              <li>El enlace de recuperaci�n es v�lido por 1 hora</li>
-              <li>Si tienes problemas, contacta con nuestro soporte</li>
-            </ul>
-            <p className="support-contact">
-              ?? Soporte: info@Tsinghe Cocina Fusión
-            </p>
-          </div>
+        {/* PASO 2: Ingresar Token y Nueva Contraseña */}
+        {step === 2 && (
+          <form onSubmit={handleResetPassword} className="forgot-password-form">
+            <div className="form-group">
+              <label htmlFor="token">Token (3 caracteres)</label>
+              <input
+                id="token"
+                type="text"
+                placeholder="Ej: ABC"
+                value={token}
+                onChange={(e) => setToken(e.target.value.toUpperCase())}
+                maxLength="3"
+                required
+              />
+              <small className="form-hint">
+                Verifica tu email y copia el token recibido
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="newPassword">Nueva Contraseña</label>
+              <input
+                id="newPassword"
+                type="password"
+                placeholder="Mínimo 4 caracteres"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirmar Contraseña</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                placeholder="Repite tu contraseña"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary btn-full-width"
+            >
+              {loading ? "Actualizando..." : "Actualizar Contraseña"}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleBackToStep1}
+              className="btn-secondary btn-full-width"
+            >
+              Volver
+            </button>
+          </form>
         )}
+
+        {/* Link al login */}
+        <div className="forgot-password-links">
+          <a href="/login" className="link-button">
+            ← Volver al Login
+          </a>
+        </div>
       </div>
     </div>
   );

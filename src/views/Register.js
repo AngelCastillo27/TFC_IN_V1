@@ -45,17 +45,25 @@ const Register = () => {
       setError("El email es requerido");
       return false;
     }
-    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+\$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Por favor ingresa un email v�lido");
+      setError("Por favor ingresa un email válido");
       return false;
     }
     if (!formData.password) {
-      setError("La contrase�a es requerida");
+      setError("La contraseña es requerida");
       return false;
     }
     if (formData.password.length < 4) {
       setError("La contraseña debe tener al menos 4 caracteres");
+      return false;
+    }
+    if (!formData.confirmPassword) {
+      setError("Debes confirmar tu contraseña");
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Las contraseñas no coinciden");
       return false;
     }
     return true;

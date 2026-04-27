@@ -13,14 +13,21 @@ import AdminOffers      from "./AdminOffers";
 import "../styles/ChineseStyle.css";
 
 // Pantalla de bienvenida segun rol
-const WelcomePanel = ({ role }) => (
+const WelcomePanel = ({ role, userName }) => (
   <div style={{ padding: "40px 20px", textAlign: "center" }}>
     <div style={{ fontSize: "60px", marginBottom: "16px" }}>
       {role === "admin" ? "🛠️" : "🍽️"}
     </div>
-    <h2 style={{ color: "#DC143C", marginBottom: "12px" }}>
-      {role === "admin" ? "Panel de Administracion" : "Bienvenido a Tsinghe Cocina Fusión"}
+    <h2 style={{ color: "#DC143C", marginBottom: "8px" }}>
+      {role === "admin"
+        ? `Panel de Administración`
+        : `¡Bienvenido, ${userName}!`}
     </h2>
+    {role !== "admin" && (
+      <p style={{ color: "#888", fontSize: "14px", marginBottom: "12px" }}>
+        Tsinghe Cocina Fusión
+      </p>
+    )}
     <p style={{ color: "#555", maxWidth: "480px", margin: "0 auto", lineHeight: "1.6" }}>
       {role === "admin"
         ? "Desde aqui puedes gestionar el menu del restaurante, las mesas, las ofertas y todas las reservas."
@@ -55,10 +62,10 @@ const WelcomePanel = ({ role }) => (
 );
 
 // Render del contenido segun opcion del sidebar
-const renderContent = (selectedOption, role, userId) => {
+const renderContent = (selectedOption, role, userId, userName) => {
   switch (selectedOption) {
     case "inicio":
-      return <WelcomePanel role={role} />;
+      return <WelcomePanel role={role} userName={userName} />;
 
     // Comensal
     case "reservas":
@@ -93,7 +100,7 @@ const ICONS = {
   "admin-reservas": "📋",
 };
 
-const Dashboard = ({ role, userId, logout }) => {
+const Dashboard = ({ role, userId, userName, logout }) => {
   const { selectedOption, availableOptions, selectOption } = useDashboard(role);
 
   const handleLogout = async () => {
@@ -200,7 +207,7 @@ const Dashboard = ({ role, userId, logout }) => {
         background: "#fafaf5",
         overflowY:  "auto",
       }}>
-        {renderContent(selectedOption, role, userId)}
+        {renderContent(selectedOption, role, userId, userName)}
       </main>
     </div>
   );

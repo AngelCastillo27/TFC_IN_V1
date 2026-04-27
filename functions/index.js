@@ -299,3 +299,265 @@ exports.initTables = onRequest(
     }
   },
 );
+
+// ════════════════════════════════════════════════════════════════════════════
+// 5. HTTP: enviar email con token para reset de contraseña
+// ════════════════════════════════════════════════════════════════════════════
+exports.sendPasswordResetEmail = onRequest(
+  {
+    region: "us-central1",
+    cors: "*",
+    invoker: "public",
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Metodo no permitido" });
+      return;
+    }
+
+    try {
+      const { email, token } = req.body;
+
+      if (!email || !token) {
+        res.status(400).json({ error: "Email y token son obligatorios" });
+        return;
+      }
+
+      // Enviar email con el token
+      const info = await transporter.sendMail({
+        from: '"Tsinghe Cocina Fusión" <tsinghecocinafusion@gmail.com>',
+        to: email,
+        subject: "Recuperar tu contraseña - Tsinghe Cocina Fusión 🔐",
+        html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5dc; margin: 0; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; }
+            .header { background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%); padding: 30px; text-align: center; }
+            .header h1 { color: white; margin: 0; font-size: 28px; }
+            .content { padding: 30px; }
+            .content h2 { color: #dc143c; margin-top: 0; }
+            .content p { color: #333; line-height: 1.6; }
+            .token-box { background: #f0f0f0; border: 2px solid #dc143c; padding: 15px; text-align: center; border-radius: 5px; margin: 20px 0; }
+            .token-box .label { font-size: 12px; color: #666; text-transform: uppercase; }
+            .token-box .token { font-size: 32px; font-weight: bold; color: #dc143c; letter-spacing: 5px; }
+            .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; color: #856404; font-size: 12px; }
+            .footer { background: #1a1a1a; padding: 20px; text-align: center; color: #888; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔐 Recuperar Contraseña</h1>
+            </div>
+            <div class="content">
+              <h2>Hemos recibido tu solicitud de recuperación</h2>
+              <p>Para recuperar tu contraseña, usa el siguiente token en nuestro sitio web:</p>
+              
+              <div class="token-box">
+                <div class="label">Tu Token:</div>
+                <div class="token">${token}</div>
+              </div>
+
+              <p><strong>Instrucciones:</strong></p>
+              <ol>
+                <li>Accede a la página de recuperación de contraseña</li>
+                <li>Ingresa este token: <strong>${token}</strong></li>
+                <li>Establece tu nueva contraseña</li>
+                <li>¡Listo! Ya podrás acceder con tu nueva contraseña</li>
+              </ol>
+
+              <div class="warning">
+                ⚠️ <strong>Este token expira en 15 minutos.</strong> Si no lo usas, tendrás que solicitar uno nuevo.
+              </div>
+
+              <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                Si no solicitaste esta recuperación, ignora este email.
+              </p>
+            </div>
+            <div class="footer">
+              <p>© 2024 Tsinghe Cocina Fusión. Todos los derechos reservados.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      });
+
+      logger.info("Email de reset de contraseña enviado:", {
+        to: email,
+        token: token,
+        messageId: info.messageId,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Email de recuperación enviado a " + email,
+      });
+    } catch (error) {
+      logger.error("Error enviando email de reset:", error);
+      res.status(500).json({
+        error: "Error al enviar el email: " + error.message,
+      });
+    }
+  },
+);
+
+// ════════════════════════════════════════════════════════════════════════════
+// 6. HTTP: validar token y resetear contraseña
+// ════════════════════════════════════════════════════════════════════════════
+exports.resetPasswordWithToken = onRequest(
+  {
+    region: "us-central1",
+    cors: "*",
+    invoker: "public",
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Metodo no permitido" });
+      return;
+    }
+
+    try {
+      const { email, newPassword, token } = req.body;
+
+      if (!email || !newPassword || !token) {
+        res.status(400).json({
+          error: "Email, token y newPassword son obligatorios",
+        });
+        return;
+      }
+
+      // Validar token en Firestore
+      const resetDoc = await db.collection("passwordResets").doc(email).get();
+
+      if (!resetDoc.exists) {
+        res.status(400).json({
+          error: "No hay solicitud de reset activa para este email",
+        });
+        return;
+      }
+
+      const resetData = resetDoc.data();
+
+      // Validar token
+      if (resetData.token !== token.toUpperCase()) {
+        res.status(400).json({ error: "Token incorrecto" });
+        return;
+      }
+
+      // Validar que no haya expirado
+      if (new Date() > new Date(resetData.expiresAt.toDate())) {
+        await db.collection("passwordResets").doc(email).delete();
+        res.status(400).json({ error: "El token ha expirado" });
+        return;
+      }
+
+      // Obtener usuario por email desde Firestore
+      const userQuery = await db
+        .collection("users")
+        .where("email", "==", email)
+        .limit(1)
+        .get();
+
+      if (userQuery.empty) {
+        res.status(400).json({ error: "Usuario no encontrado" });
+        return;
+      }
+
+      const userId = userQuery.docs[0].id;
+
+      // Cambiar contraseña en Firebase Auth
+      try {
+        await admin.auth().updateUser(userId, {
+          password: newPassword,
+        });
+
+        logger.info("Contraseña actualizada para usuario:", { email, userId });
+      } catch (authError) {
+        logger.error("Error actualizando contraseña en Auth:", authError);
+        res.status(500).json({
+          error: "Error al actualizar la contraseña: " + authError.message,
+        });
+        return;
+      }
+
+      // Eliminar token de reset después de usarlo
+      await db.collection("passwordResets").doc(email).delete();
+
+      // Enviar email de confirmación
+      try {
+        await transporter.sendMail({
+          from: '"Tsinghe Cocina Fusión" <tsinghecocinafusion@gmail.com>',
+          to: email,
+          subject: "Tu contraseña ha sido actualizada - Tsinghe Cocina Fusión",
+          html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; background-color: #f5f5dc; margin: 0; padding: 20px; }
+              .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; }
+              .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 30px; text-align: center; }
+              .header h1 { color: white; margin: 0; font-size: 28px; }
+              .content { padding: 30px; }
+              .footer { background: #1a1a1a; padding: 20px; text-align: center; color: #888; font-size: 12px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>✅ Contraseña Actualizada</h1>
+              </div>
+              <div class="content">
+                <p>Tu contraseña ha sido actualizada exitosamente.</p>
+                <p>Ya puedes iniciar sesión con tu nueva contraseña en Tsinghe Cocina Fusión.</p>
+                <p style="color: #666; font-size: 12px;">Si no realizaste este cambio, contacta a soporte inmediatamente.</p>
+              </div>
+              <div class="footer">
+                <p>© 2024 Tsinghe Cocina Fusión. Todos los derechos reservados.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        });
+      } catch (emailError) {
+        logger.warn("Email de confirmación no enviado:", emailError);
+        // No fallar si el email de confirmación no se envía
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Contraseña actualizada exitosamente",
+      });
+    } catch (error) {
+      logger.error("Error en resetPasswordWithToken:", error);
+      res.status(500).json({
+        error: "Error interno: " + error.message,
+      });
+    }
+  },
+);

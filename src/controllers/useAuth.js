@@ -1,15 +1,18 @@
 // Controlador: useAuth.js
 // Este hook personalizado maneja la lógica de control para la autenticación.
 // Gestiona el estado del login, errores, y llamadas al modelo AuthService.
-// Ahora extendido para incluir el rol del usuario.
+// Ahora extendido para incluir el rol del usuario y su nombre desde Firestore.
 
 import { useState, useEffect } from "react";
-import { auth } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 import AuthService from "../models/AuthService";
 
 const useAuth = () => {
   // Estado para el usuario actual
   const [user, setUser] = useState(null);
+  // Estado para el nombre del usuario desde Firestore
+  const [userName, setUserName] = useState(null);
   // Estado para el rol del usuario
   const [role, setRole] = useState(null);
   // Estado para indicar si está cargando
@@ -25,8 +28,19 @@ const useAuth = () => {
         // Obtener el rol desde Firestore
         const userRole = await AuthService.getUserRole(currentUser.uid);
         setRole(userRole);
+
+        // Obtener el nombre desde Firestore
+        try {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            setUserName(userDoc.data().name);
+          }
+        } catch (err) {
+          console.error("Error obteniendo nombre del usuario:", err);
+        }
       } else {
         setRole(null);
+        setUserName(null);
       }
       setLoading(false);
     });
@@ -44,7 +58,7 @@ const useAuth = () => {
 
     if (result.success) {
       setUser(result.user);
-      // El rol se establece en el useEffect
+      // El rol y nombre se establecen en el useEffect
       return { success: true };
     } else {
       setError(result.error);
@@ -58,6 +72,7 @@ const useAuth = () => {
     if (result.success) {
       setUser(null);
       setRole(null);
+      setUserName(null);
     } else {
       setError(result.error);
     }
@@ -65,6 +80,7 @@ const useAuth = () => {
 
   return {
     user,
+    userName,
     role,
     loading,
     error,
