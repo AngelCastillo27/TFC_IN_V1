@@ -52,64 +52,121 @@ exports.onUserCreated = onDocumentCreated("users/{uid}", async (event) => {
 });
 
 // ════════════════════════════════════════════════════════════════════════════
-// 2. HTTP: enviar email de bienvenida
-//    El cliente llama a esta funcion tras el registro exitoso.
-//    En produccion conectar con SendGrid / Resend / Nodemailer + SMTP.
+// 2. HTTP: enviar email de bienvenida con Gmail/Nodemailer
 // ════════════════════════════════════════════════════════════════════════════
-exports.sendWelcomeEmail = onRequest(async (req, res) => {
-  // Habilitar CORS para llamadas desde el navegador
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
+const nodemailer = require("nodemailer");
 
-  if (req.method === "OPTIONS") {
-    res.status(204).send("");
-    return;
-  }
+// Configurar transporter de Gmail con opciones adicionales
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "tsinghecocinafusion@gmail.com",
+    pass: "rjpz pcrj zlvu spku",
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
 
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Metodo no permitido" });
-    return;
-  }
+exports.sendWelcomeEmail = onRequest(
+  {
+    region: "us-central1",
+    cors: "*",
+    invoker: "public",
+  },
+  async (req, res) => {
+    // Habilitar CORS para llamadas desde el navegador
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
 
-  try {
-    const { email, displayName } = req.body;
-
-    if (!email) {
-      res.status(400).json({ error: "Email es obligatorio" });
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
       return;
     }
 
-    const name = displayName || email.split("@")[0];
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Metodo no permitido" });
+      return;
+    }
 
-    // ── Aqui conectarias tu servicio de email (SendGrid, Resend, etc.) ──
-    // Ejemplo con SendGrid (descomentar cuando configures la API key):
-    //
-    // const sgMail = require("@sendgrid/mail");
-    // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    // await sgMail.send({
-    //   to:      email,
-    //   from:    "noreply@dragonpalace.es",
-    //   subject: "Bienvenido a Tsinghe Cocina Fusión",
-    //   html:    `<h1>Hola ${name}!</h1><p>Gracias por registrarte en Tsinghe Cocina Fusión.</p>`,
-    // });
+    try {
+      const { email, displayName } = req.body;
 
-    // Por ahora: log de simulacion
-    logger.info("EMAIL DE BIENVENIDA (simulado):", {
-      to: email,
-      name: name,
-      subject: "Bienvenido a Tsinghe Cocina Fusión",
-    });
+      if (!email) {
+        res.status(400).json({ error: "Email es obligatorio" });
+        return;
+      }
 
-    res.status(200).json({
-      success: true,
-      message: "Email enviado (simulado) a " + email,
-    });
-  } catch (error) {
-    logger.error("Error enviando email:", error);
-    res.status(500).json({ error: "Error interno al enviar el email" });
-  }
-});
+      const name = displayName || email.split("@")[0];
+
+      // Enviar email real con Gmail/Nodemailer
+      const info = await transporter.sendMail({
+        from: '"Tsinghe Cocina Fusión" <tsinghecocinafusion@gmail.com>',
+        to: email,
+        subject: "¡Bienvenido a Tsinghe Cocina Fusión! 🍜",
+        html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5dc; margin: 0; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; }
+            .header { background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%); padding: 30px; text-align: center; }
+            .header h1 { color: white; margin: 0; font-size: 28px; }
+            .content { padding: 30px; }
+            .content h2 { color: #dc143c; margin-top: 0; }
+            .content p { color: #333; line-height: 1.6; }
+            .button { display: inline-block; background: #dc143c; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+            .footer { background: #1a1a1a; padding: 20px; text-align: center; color: #888; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🍜 Tsinghe Cocina Fusión</h1>
+            </div>
+            <div class="content">
+              <h2>¡Hola ${name}!</h2>
+              <p>Gracias por registrarte en <strong>Tsinghe Cocina Fusión</strong>.</p>
+              <p>Estamos muy felices de tenerte con nosotros. Ahora puedes:</p>
+              <ul>
+                <li>Explorar nuestro menú</li>
+                <li>Hacer reservas de mesa</li>
+                <li>Ver tus reservas anteriores</li>
+              </ul>
+              <p>¡Te esperamos para vivir una experiencia culinaria única!</p>
+              <a href="https://digitalizacion-tsinge-fusion.web.app/" class="button">Visitar nuestro restaurante</a>
+            </div>
+            <div class="footer">
+              <p>© 2024 Tsinghe Cocina Fusión. Todos los derechos reservados.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      });
+
+      logger.info("EMAIL DE BIENVENIDA (real) enviado:", {
+        to: email,
+        name: name,
+        messageId: info.messageId,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Email enviado a " + email,
+        messageId: info.messageId,
+      });
+    } catch (error) {
+      logger.error("Error enviando email:", error);
+      res
+        .status(500)
+        .json({ error: "Error interno al enviar el email: " + error.message });
+    }
+  },
+);
 
 // ════════════════════════════════════════════════════════════════════════════
 // 3. TRIGGER: cuando se escribe una reserva → actualizar campo

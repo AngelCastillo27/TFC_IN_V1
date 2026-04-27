@@ -32,3 +32,19 @@ Botones revisados: "Explorar Menú" y "Reservar Mesa" son nombres apropiados y p
 Sí ✓
 
 Sugerencia (20 palabras): Considera agregar carpetas /constants para endpoints y /utils para funciones compartidas. Mejoraría mantenibilidad y reutilización de código.
+
+##############
+TODO:
+perfecto, ahora revisa a detalle algo, 
+veo que al momento de darle al boton de "registrarse"
+hay uno que genera el usuario y pide una contraseña, 
+pero hay otra que pide nombre completo, correo y contraseña, 
+verifica que solo exista un solo registro y que para la contraseña 
+no complique l usuario, que solo tenga los requisitos minimos de seguridad ,
+ por otro lado, que al registrarse le llegue el correo de bienvenida como ya
+  lo hemos logrado y por si alguna razon desea reestablecer su contraseña 
+  le llegue un numero random al correo y con ese numero o clave token que 
+  sea de 3 caracteres numeros o letras. con ese token pueda reestablecer su contraseña
+desde el dashboard hay confusion porque al registarrte te manda un lado 
+y si pones otro boton de registro te envia a otro, que enga estas cualidade, 
+mejoresmos esto paso a paso debe quedar perfecto

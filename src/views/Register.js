@@ -54,12 +54,8 @@ const Register = () => {
       setError("La contrase�a es requerida");
       return false;
     }
-    if (formData.password.length < 6) {
-      setError("La contrase�a debe tener al menos 6 caracteres");
-      return false;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contrase�as no coinciden");
+    if (formData.password.length < 4) {
+      setError("La contraseña debe tener al menos 4 caracteres");
       return false;
     }
     return true;
