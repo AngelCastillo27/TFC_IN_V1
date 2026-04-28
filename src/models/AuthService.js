@@ -110,7 +110,7 @@ class AuthService {
       return { success: true, user };
     } catch (error) {
       console.error("❌ Error en registro:", error.code, error.message);
-      
+
       // Manejar errores específicos de Firebase
       if (error.code === "auth/email-already-in-use") {
         return {
@@ -136,7 +136,7 @@ class AuthService {
           suggestion: "email",
         };
       }
-      
+
       return { success: false, error: error.message };
     }
   }
@@ -332,7 +332,7 @@ class AuthService {
 
       // Obtener usuario por email
       const userQuerySnapshot = await getDocs(
-        query(collection(db, "users"), where("email", "==", email))
+        query(collection(db, "users"), where("email", "==", email)),
       );
 
       if (userQuerySnapshot.empty) {
@@ -387,7 +387,7 @@ class AuthService {
       return { success: true, message: "Contraseña creada exitosamente" };
     } catch (error) {
       console.error("❌ Error agregando contraseña:", error.message);
-      
+
       if (error.code === "auth/weak-password") {
         return {
           success: false,
@@ -397,7 +397,8 @@ class AuthService {
       if (error.code === "auth/requires-recent-login") {
         return {
           success: false,
-          error: "Necesitas iniciar sesión nuevamente para cambiar la contraseña",
+          error:
+            "Necesitas iniciar sesión nuevamente para cambiar la contraseña",
         };
       }
 
