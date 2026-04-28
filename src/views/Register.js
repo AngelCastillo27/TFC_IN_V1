@@ -2,14 +2,15 @@
 // Componente de registro de nuevos usuarios
 // Incluye validaci�n de formulario y manejo de errores
 
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import AuthService from "../models/AuthService";
 import "../styles/ChineseStyle.css";
 
 const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,6 +20,17 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+
+  // Pre-llenar email desde URL (?email=xxx)
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setFormData((prev) => ({
+        ...prev,
+        email: decodeURIComponent(emailParam),
+      }));
+    }
+  }, [searchParams]);
 
   // Manejar cambios en los inputs
   const handleInputChange = (e) => {

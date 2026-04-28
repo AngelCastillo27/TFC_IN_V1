@@ -587,7 +587,7 @@ exports.initMenuBasic = onRequest(
           name: "Rollitos de Primavera",
           description: "Crujientes rollitos rellenos de verduras y camarones",
           category: "Entrantes",
-          price: 6.50,
+          price: 6.5,
           available: true,
           active: true,
         },
@@ -595,7 +595,7 @@ exports.initMenuBasic = onRequest(
           name: "Tabla de Embutidos",
           description: "Selección de embutidos ibéricos y quesos variados",
           category: "Entrantes",
-          price: 12.00,
+          price: 12.0,
           available: true,
           active: true,
         },
@@ -603,7 +603,7 @@ exports.initMenuBasic = onRequest(
           name: "Bruschettas Variadas",
           description: "Pan tostado con tomate, queso y hierbas aromáticas",
           category: "Entrantes",
-          price: 8.00,
+          price: 8.0,
           available: true,
           active: true,
         },
@@ -611,7 +611,7 @@ exports.initMenuBasic = onRequest(
           name: "Tabla de Quesos",
           description: "Selección de quesos nacionales e internacionales",
           category: "Entrantes",
-          price: 14.00,
+          price: 14.0,
           available: true,
           active: true,
         },
@@ -621,7 +621,7 @@ exports.initMenuBasic = onRequest(
           name: "Filete Mignon a la Pimienta",
           description: "Filete de carne con salsa de pimienta negra y hierbas",
           category: "Principales - Carnes",
-          price: 22.00,
+          price: 22.0,
           available: true,
           active: true,
         },
@@ -629,15 +629,16 @@ exports.initMenuBasic = onRequest(
           name: "Carne Asada al Carbón",
           description: "Trozos de carne premium a la parrilla con chimichurri",
           category: "Principales - Carnes",
-          price: 24.00,
+          price: 24.0,
           available: true,
           active: true,
         },
         {
           name: "Pollo a la Naranja",
-          description: "Pechuga de pollo glaseada con salsa de naranja y jengibre",
+          description:
+            "Pechuga de pollo glaseada con salsa de naranja y jengibre",
           category: "Principales - Carnes",
-          price: 18.00,
+          price: 18.0,
           available: true,
           active: true,
         },
@@ -645,9 +646,10 @@ exports.initMenuBasic = onRequest(
         // PRINCIPALES - PESCADOS
         {
           name: "Salmón a la Mantequilla",
-          description: "Filete de salmón fresco con salsa de mantequilla y limón",
+          description:
+            "Filete de salmón fresco con salsa de mantequilla y limón",
           category: "Principales - Pescados",
-          price: 20.00,
+          price: 20.0,
           available: true,
           active: true,
         },
@@ -655,7 +657,7 @@ exports.initMenuBasic = onRequest(
           name: "Lubina al Horno",
           description: "Lubina entera con verduras asadas y aceite de oliva",
           category: "Principales - Pescados",
-          price: 21.00,
+          price: 21.0,
           available: true,
           active: true,
         },
@@ -663,7 +665,7 @@ exports.initMenuBasic = onRequest(
           name: "Camarones al Ajillo",
           description: "Camarones frescos salteados con ajo, limón y perejil",
           category: "Principales - Pescados",
-          price: 19.00,
+          price: 19.0,
           available: true,
           active: true,
         },
@@ -673,23 +675,25 @@ exports.initMenuBasic = onRequest(
           name: "Risotto de Champiñones",
           description: "Arroz cremoso con champiñones variados y parmesano",
           category: "Principales - Vegetarianos",
-          price: 15.00,
+          price: 15.0,
           available: true,
           active: true,
         },
         {
           name: "Pasta a la Trufa",
-          description: "Pasta fresca con salsa de trufa negra y hongos silvestres",
+          description:
+            "Pasta fresca con salsa de trufa negra y hongos silvestres",
           category: "Principales - Vegetarianos",
-          price: 16.00,
+          price: 16.0,
           available: true,
           active: true,
         },
         {
           name: "Berenjena a la Parmesana",
-          description: "Capas de berenjena, tomate y queso mozzarella gratinado",
+          description:
+            "Capas de berenjena, tomate y queso mozzarella gratinado",
           category: "Principales - Vegetarianos",
-          price: 14.00,
+          price: 14.0,
           available: true,
           active: true,
         },
@@ -699,7 +703,7 @@ exports.initMenuBasic = onRequest(
           name: "Vino Tinto Reserva",
           description: "Vino tinto español de excelente calidad",
           category: "Bebidas",
-          price: 10.00,
+          price: 10.0,
           available: true,
           active: true,
         },
@@ -707,7 +711,7 @@ exports.initMenuBasic = onRequest(
           name: "Vino Blanco Sauvignon",
           description: "Vino blanco fresco con notas cítricas",
           category: "Bebidas",
-          price: 9.50,
+          price: 9.5,
           available: true,
           active: true,
         },
@@ -715,7 +719,7 @@ exports.initMenuBasic = onRequest(
           name: "Cerveza Artesanal",
           description: "Cerveza artesanal local de 330ml",
           category: "Bebidas",
-          price: 4.50,
+          price: 4.5,
           available: true,
           active: true,
         },
@@ -723,7 +727,7 @@ exports.initMenuBasic = onRequest(
           name: "Jugo Natural de Frutas",
           description: "Jugo fresco de frutas variadas",
           category: "Bebidas",
-          price: 5.00,
+          price: 5.0,
           available: true,
           active: true,
         },
@@ -731,9 +735,10 @@ exports.initMenuBasic = onRequest(
         // POSTRES
         {
           name: "Tiramisú Clásico",
-          description: "Postre italiano con capas de bizcochos, café y mascarpone",
+          description:
+            "Postre italiano con capas de bizcochos, café y mascarpone",
           category: "Postres",
-          price: 7.00,
+          price: 7.0,
           available: true,
           active: true,
         },
@@ -741,7 +746,7 @@ exports.initMenuBasic = onRequest(
           name: "Flan de Caramelo",
           description: "Flan casero con salsa de caramelo",
           category: "Postres",
-          price: 6.00,
+          price: 6.0,
           available: true,
           active: true,
         },
@@ -749,7 +754,7 @@ exports.initMenuBasic = onRequest(
           name: "Mousse de Chocolate",
           description: "Mousse de chocolate belga con galleta de canela",
           category: "Postres",
-          price: 7.50,
+          price: 7.5,
           available: true,
           active: true,
         },
@@ -757,7 +762,7 @@ exports.initMenuBasic = onRequest(
           name: "Fresas con Crema",
           description: "Fresas frescas con crema batida y merengue",
           category: "Postres",
-          price: 8.00,
+          price: 8.0,
           available: true,
           active: true,
         },
@@ -978,19 +983,115 @@ exports.confirmReservationToken = onRequest(
 
       const userExists = !userQuery.empty;
 
+      // Si el usuario no existe, generar URL de registro pre-llenado
+      let registerUrl = null;
+      if (!userExists) {
+        registerUrl = `https://digitalizacion-tsinge-fusion.web.app/register?email=${encodeURIComponent(tokenData.email)}`;
+      }
+
       logger.info("Reserva confirmada con token para:", tokenData.email);
 
       res.status(200).json({
         success: true,
         email: tokenData.email,
         userExists,
-        message: "Reserva confirmada exitosamente",
+        registerUrl,
+        message: userExists
+          ? "Reserva confirmada exitosamente"
+          : "Reserva confirmada. Crea tu perfil para gestionar tus reservas",
       });
     } catch (error) {
       logger.error("Error confirmando token de reserva:", error);
       res.status(500).json({
         error: "Error interno: " + error.message,
       });
+    }
+  },
+);
+
+// ════════════════════════════════════════════════════════════════════════════
+// 10. SCHEDULED: verificar No-Show cada 15 minutos
+//    Se ejecuta cada 15 minutos via Pub/Sub
+//    Marca como "no-asistió" las reservas confirmadas cuya hora pasó
+//    sin que el usuario confirmara en persona
+// ════════════════════════════════════════════════════════════════════════════
+const { onSchedule } = require("firebase-functions/scheduler");
+
+exports.checkNoShows = onSchedule(
+  {
+    schedule: "every 15 minutes",
+    region: "us-central1",
+    timeout: "60s",
+  },
+  async (event) => {
+    logger.info("Iniciando verificación de No-Shows...");
+
+    try {
+      const now = admin.firestore.Timestamp.now();
+
+      // Buscar reservas confirmadas cuya hora ya pasó
+      const snapshot = await db
+        .collection("reservations")
+        .where("status", "==", "confirmada")
+        .get();
+
+      let noShowCount = 0;
+      const noShowReservations = [];
+
+      for (const doc of snapshot.docs) {
+        const reservation = doc.data();
+
+        // Convertir la fecha de la reserva a objeto Date
+        const reservationDate = reservation.date.toDate
+          ? reservation.date.toDate()
+          : new Date(reservation.date);
+
+        // Combinar fecha + hora de la reserva
+        const [hours, minutes] = (reservation.time || "20:00").split(":");
+        reservationDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+        // Añadir 15 minutos de gracia
+        const graceTime = new Date(reservationDate.getTime() + 15 * 60 * 1000);
+
+        // Si pasó la hora + 15 min de gracia, marcar como no-asistió
+        if (now.toDate() > graceTime) {
+          await doc.ref.update({
+            status: "no-asistio",
+            noShowAt: admin.firestore.Timestamp.now(),
+            noShowReason:
+              "No confirmado en persona dentro de los 15 minutos de gracia",
+          });
+
+          noShowCount++;
+          noShowReservations.push({
+            reservationId: doc.id,
+            email: reservation.email,
+            tableId: reservation.tableId,
+            date: reservation.date,
+            time: reservation.time,
+          });
+
+          logger.info("Reserva marcada como no-asistió:", {
+            reservationId: doc.id,
+            email: reservation.email,
+          });
+        }
+      }
+
+      logger.info("Verificación de No-Shows completada:", {
+        totalCheck: snapshot.size,
+        noShowsFound: noShowCount,
+      });
+
+      return {
+        success: true,
+        checked: snapshot.size,
+        noShowsMarked: noShowCount,
+        noShowReservations,
+      };
+    } catch (error) {
+      logger.error("Error en verificación de No-Shows:", error);
+      throw error;
     }
   },
 );
