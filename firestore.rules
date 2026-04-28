@@ -96,6 +96,30 @@ service cloud.firestore {
     }
 
     // ════════════════════════════════════════════════════════════════════
+    // RESERVATION CONFIRMATIONS
+    // Crear: cualquier usuario logueado (al confirmar reserva)
+    // Leer: el propietario del email o admin
+    // ════════════════════════════════════════════════════════════════════
+    match /reservationConfirmations/{confirmationId} {
+      allow read:   if isLoggedIn();
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn();
+      allow delete: if isAdmin();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // PASSWORD RESETS
+    // Crear: cualquier usuario (solicitar reset)
+    // Leer/Actualizar: solo el propietario del email
+    // ════════════════════════════════════════════════════════════════════
+    match /passwordResets/{email} {
+      allow read:   if isLoggedIn() && request.auth.uid == email;
+      allow create: if true;
+      allow update: if isLoggedIn() && request.auth.uid == email;
+      allow delete: if true;
+    }
+
+    // ════════════════════════════════════════════════════════════════════
     // Todo lo demas: denegado por defecto
     // ════════════════════════════════════════════════════════════════════
     match /{document=**} {

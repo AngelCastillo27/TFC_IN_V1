@@ -963,7 +963,11 @@ table tr:hover {
   justify-content: center;
   align-items: center;
   min-height: calc(100vh - 63px);
-  background: linear-gradient(135deg, rgba(220, 20, 60, 0.05) 0%, rgba(255, 215, 0, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(220, 20, 60, 0.05) 0%,
+    rgba(255, 215, 0, 0.05) 100%
+  );
   padding: 40px 20px;
 }
 
@@ -1001,8 +1005,12 @@ table tr:hover {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .success-state p,
@@ -1027,9 +1035,6 @@ table tr:hover {
 .success-state button,
 .error-state button {
   margin-top: 20px;
-}
-  margin: 0 0 30px 0;
-  line-height: 1.6;
 }
 
 .cta-login-message {

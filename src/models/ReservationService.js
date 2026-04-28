@@ -18,7 +18,8 @@ import { db } from "../firebaseConfig";
 
 // Generar token aleatorio de 20 caracteres para confirmación
 const generateConfirmationToken = () => {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let token = "";
   for (let i = 0; i < 20; i++) {
     token += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -36,7 +37,7 @@ class ReservationService {
       const existingReservation = await this.checkReservationConflict(
         reservationData.tableId,
         reservationData.reservationDate,
-        reservationData.reservationTime
+        reservationData.reservationTime,
       );
 
       if (existingReservation) {
@@ -82,7 +83,7 @@ class ReservationService {
               },
               confirmationToken,
             }),
-          }
+          },
         );
       } catch (emailError) {
         console.error("⚠️ Error enviando email de confirmación:", emailError);
@@ -106,8 +107,8 @@ class ReservationService {
           where("tableId", "==", tableId),
           where("reservationDate", "==", date),
           where("reservationTime", "==", time),
-          where("status", "!=", "cancelada")
-        )
+          where("status", "!=", "cancelada"),
+        ),
       );
 
       return !querySnapshot.empty;
@@ -121,10 +122,7 @@ class ReservationService {
   async getUserReservations(userId) {
     try {
       const querySnapshot = await getDocs(
-        query(
-          collection(db, "reservations"),
-          where("userId", "==", userId)
-        )
+        query(collection(db, "reservations"), where("userId", "==", userId)),
       );
 
       const reservations = [];
@@ -137,6 +135,11 @@ class ReservationService {
       console.error("Error obteniendo reservas:", error);
       return { success: false, error: error.message };
     }
+  }
+
+  // Alias: getReservationsByUser (para compatibilidad con el controlador)
+  async getReservationsByUser(userId) {
+    return this.getUserReservations(userId);
   }
 
   // Obtener todas las reservas (para admin)
@@ -246,8 +249,8 @@ class ReservationService {
         query(
           collection(db, "reservations"),
           where("reservationDate", "==", date),
-          where("status", "!=", "cancelada")
-        )
+          where("status", "!=", "cancelada"),
+        ),
       );
 
       const reservations = [];
@@ -280,8 +283,8 @@ class ReservationService {
           collection(db, "reservations"),
           where("reservationDate", "==", date),
           where("reservationTime", "==", time),
-          where("status", "!=", "cancelada")
-        )
+          where("status", "!=", "cancelada"),
+        ),
       );
 
       const reservedTableIds = new Set();
@@ -291,7 +294,7 @@ class ReservationService {
 
       // Filtrar mesas disponibles
       const availableTables = allTables.filter(
-        (table) => !reservedTableIds.has(table.id)
+        (table) => !reservedTableIds.has(table.id),
       );
 
       return { success: true, tables: availableTables };

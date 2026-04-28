@@ -31,7 +31,14 @@ const WelcomePanel = ({ role, userName }) => (
         Tsinghe Cocina Fusión
       </p>
     )}
-    <p style={{ color: "#555", maxWidth: "480px", margin: "0 auto", lineHeight: "1.6" }}>
+    <p
+      style={{
+        color: "#555",
+        maxWidth: "480px",
+        margin: "0 auto",
+        lineHeight: "1.6",
+      }}
+    >
       {role === "admin"
         ? "Desde aqui puedes gestionar el menu del restaurante, las mesas, las ofertas y todas las reservas."
         : "Aqui puedes crear, consultar y cancelar tus reservas en Tsinghe Cocina Fusión."}
@@ -39,24 +46,49 @@ const WelcomePanel = ({ role, userName }) => (
 
     {/* Tarjetas informativas para admin */}
     {role === "admin" && (
-      <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "32px", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "16px",
+          justifyContent: "center",
+          marginTop: "32px",
+          flexWrap: "wrap",
+        }}
+      >
         {[
-          { emoji: "🍜", label: "Menu",    desc: "Platos, precios y alergenos"   },
-          { emoji: "🪑", label: "Mesas",   desc: "20 mesas con estado en tiempo real" },
-          { emoji: "🏷️", label: "Ofertas", desc: "Promociones y descuentos"       },
-          { emoji: "📋", label: "Reservas",desc: "Todas las reservas del restaurante" },
+          { emoji: "🍜", label: "Menu", desc: "Platos, precios y alergenos" },
+          {
+            emoji: "🪑",
+            label: "Mesas",
+            desc: "20 mesas con estado en tiempo real",
+          },
+          { emoji: "🏷️", label: "Ofertas", desc: "Promociones y descuentos" },
+          {
+            emoji: "📋",
+            label: "Reservas",
+            desc: "Todas las reservas del restaurante",
+          },
         ].map((c) => (
-          <div key={c.label} style={{
-            background: "#fff",
-            border: "2px solid #FFD700",
-            borderRadius: "10px",
-            padding: "20px 24px",
-            minWidth: "140px",
-            textAlign: "center",
-          }}>
+          <div
+            key={c.label}
+            style={{
+              background: "#fff",
+              border: "2px solid #FFD700",
+              borderRadius: "10px",
+              padding: "20px 24px",
+              minWidth: "140px",
+              textAlign: "center",
+            }}
+          >
             <div style={{ fontSize: "32px" }}>{c.emoji}</div>
-            <div style={{ fontWeight: "bold", color: "#DC143C", marginTop: "8px" }}>{c.label}</div>
-            <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>{c.desc}</div>
+            <div
+              style={{ fontWeight: "bold", color: "#DC143C", marginTop: "8px" }}
+            >
+              {c.label}
+            </div>
+            <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
+              {c.desc}
+            </div>
           </div>
         ))}
       </div>
@@ -72,7 +104,14 @@ const renderContent = (selectedOption, role, userId, userName, userEmail) => {
 
     // Comensal
     case "reservas":
-      return <ReservationsView role={role} userId={userId} />;
+      return (
+        <ReservationsView
+          role={role}
+          userId={userId}
+          userEmail={userEmail}
+          userName={userName}
+        />
+      );
 
     case "nueva-reserva":
       return (
@@ -94,7 +133,14 @@ const renderContent = (selectedOption, role, userId, userName, userEmail) => {
     case "admin-ofertas":
       return <AdminOffers />;
     case "admin-reservas":
-      return <ReservationsView role={role} userId={userId} />;
+      return (
+        <ReservationsView
+          role={role}
+          userId={userId}
+          userEmail={userEmail}
+          userName={userName}
+        />
+      );
     case "admin-crear-reserva":
       return (
         <AdminReservationForm
@@ -115,11 +161,11 @@ const renderContent = (selectedOption, role, userId, userName, userEmail) => {
 
 // Iconos para el sidebar
 const ICONS = {
-  "inicio":         "🏠",
-  "reservas":       "📅",
-  "admin-menu":     "🍜",
-  "admin-mesas":    "🪑",
-  "admin-ofertas":  "🏷️",
+  inicio: "🏠",
+  reservas: "📅",
+  "admin-menu": "🍜",
+  "admin-mesas": "🪑",
+  "admin-ofertas": "🏷️",
   "admin-reservas": "📋",
 };
 
