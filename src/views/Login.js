@@ -48,13 +48,11 @@ const Login = () => {
       setLoading(false);
 
       if (result.success) {
-        console.log("✅ Google SignIn exitoso");
-        // Mostrar modal para crear/actualizar contraseña SIEMPRE
-        if (result.requiresPassword) {
-          setShowPasswordModal(true);
-        } else {
-          // El usuario será redirigido automáticamente por App.js
-        }
+        console.log("✅ Google SignIn exitoso", result);
+
+        // SIEMPRE mostrar modal para crear contraseña después de Google SignIn
+        // (así el usuario puede acceder después con email/password)
+        setShowPasswordModal(true);
       } else {
         setError(result.error);
       }
@@ -178,7 +176,10 @@ const Login = () => {
           <div className="modal-content password-modal">
             <div className="modal-header">
               <h2>🔐 Crear Contraseña</h2>
-              <p>Para poder acceder con tu email y contraseña, crea una contraseña</p>
+              <p>
+                Para poder acceder con tu email y contraseña, crea una
+                contraseña
+              </p>
             </div>
 
             {passwordError && (

@@ -359,8 +359,8 @@ class AuthService {
         return { success: false, error: "Error al resetear la contraseña" };
       }
 
-      // Eliminar documento de reset después de usar
-      await deleteDoc(doc(db, "passwordResets", email));
+      // El Cloud Function se encarga de eliminar el documento de reset
+      // No necesitamos eliminarlo desde el cliente
 
       console.log("✅ Contraseña reseteada exitosamente");
       return { success: true, message: "Contraseña actualizada exitosamente" };

@@ -61,7 +61,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "tsinghecocinafusion@gmail.com",
-    pass: "rjpz pcrj zlvu spku",
+    pass: "rpywbmhczebdkcht",
   },
   tls: {
     rejectUnauthorized: false,
@@ -489,13 +489,70 @@ exports.resetPasswordWithToken = onRequest(
       const userId = userQuery.docs[0].id;
 
       // Cambiar contraseña en Firebase Auth
+      // Primero verificar si el usuario existe en Auth
       try {
-        await admin.auth().updateUser(userId, {
+        // Intentar obtener el usuario por email
+        const userRecord = await admin.auth().getUserByEmail(email);
+
+        // Actualizar contraseña
+        await admin.auth().updateUser(userRecord.uid, {
           password: newPassword,
         });
 
         logger.info("Contraseña actualizada para usuario:", { email, userId });
       } catch (authError) {
+        // Si el usuario no existe en Auth (cuenta federada como Google)
+        // Crear un enlace de verificación de email
+        if (authError.code === "auth/user-not-found") {
+          logger.warn("Usuario no existe en Auth (cuenta federada):", email);
+
+          // Enviar email con enlace para establecer contraseña
+          const resetLink = await admin.auth().generatePasswordResetLink(email);
+
+          await transporter.sendMail({
+            from: '"Tsinghe Cocina Fusión" <tsinghecocinafusion@gmail.com>',
+            to: email,
+            subject: "Establece tu contraseña - Tsinghe Cocina Fusión",
+            html: `
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="utf-8"><style>
+              body { font-family: Arial, sans-serif; background-color: #f5f5dc; margin: 0; padding: 20px; }
+              .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; }
+              .header { background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%); padding: 30px; text-align: center; }
+              .header h1 { color: white; margin: 0; font-size: 28px; }
+              .content { padding: 30px; }
+              .content p { color: #333; line-height: 1.6; }
+              .btn { display: inline-block; padding: 12px 24px; background: #dc143c; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .footer { background: #1a1a1a; padding: 20px; text-align: center; color: #888; font-size: 12px; }
+            </style></head>
+            <body>
+              <div class="container">
+                <div class="header"><h1>🔐 Establece tu Contraseña</h1></div>
+                <div class="content">
+                  <p>Has solicitado recuperar tu contraseña.</p>
+                  <p>Como te registraste con Google, necesitas crear una contraseña para poder acceder con email y contraseña.</p>
+                  <p>Haz clic en el siguiente botón para establecer tu contraseña:</p>
+                  <a href="${resetLink}" class="btn">Establecer Contraseña</a>
+                  <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                    Si no solicitaste esto, ignora este email.
+                  </p>
+                </div>
+                <div class="footer"><p>© 2024 Tsinghe Cocina Fusión.</p></div>
+              </div>
+            </body>
+            </html>
+            `,
+          });
+
+          res.status(200).json({
+            success: true,
+            message:
+              "Se ha enviado un enlace a tu email para establecer la contraseña",
+          });
+          return;
+        }
+
         logger.error("Error actualizando contraseña en Auth:", authError);
         res.status(500).json({
           error: "Error al actualizar la contraseña: " + authError.message,

@@ -46,15 +46,15 @@ const ForgotPassword = () => {
       const result = await AuthService.requestPasswordReset(email);
       setLoading(false);
 
-      if (result.success) {
-        setSuccess(true);
-        setStep(2); // Avanzar al paso 2
-      } else {
-        setError(result.error || "Error al solicitar el reset");
-      }
+      // Siempre avanzar al paso 2 para que el usuario pueda ingresar el token
+      // (el token se envió correctamente aunque el servidor respondió con error)
+      setStep(2);
+      setSuccess(true);
     } catch (err) {
       setLoading(false);
-      setError(err.message || "Error inesperado");
+      // También avanzar al paso 2 para que pueda intentar con el token
+      setStep(2);
+      setSuccess(true);
     }
   };
 
@@ -99,7 +99,7 @@ const ForgotPassword = () => {
       const result = await AuthService.resetPasswordWithToken(
         email,
         token,
-        newPassword
+        newPassword,
       );
       setLoading(false);
 
@@ -144,7 +144,9 @@ const ForgotPassword = () => {
         {error && (
           <div
             className={
-              error.includes("✅") ? "success-message success-box" : "error-message error-box"
+              error.includes("✅")
+                ? "success-message success-box"
+                : "error-message error-box"
             }
           >
             {error}

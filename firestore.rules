@@ -110,12 +110,13 @@ service cloud.firestore {
     // ════════════════════════════════════════════════════════════════════
     // PASSWORD RESETS
     // Crear: cualquier usuario (solicitar reset)
-    // Leer/Actualizar: solo el propietario del email
+    // Leer/Actualizar: cualquier usuario (el token se valida en el servidor)
+    // Borrar: cualquier usuario (después de usar el token)
     // ════════════════════════════════════════════════════════════════════
     match /passwordResets/{email} {
-      allow read:   if isLoggedIn() && request.auth.uid == email;
+      allow read:   if true;
       allow create: if true;
-      allow update: if isLoggedIn() && request.auth.uid == email;
+      allow update: if true;
       allow delete: if true;
     }
 
