@@ -118,9 +118,19 @@ const Register = () => {
           navigate("/login");
         }, 2000);
       } else {
-        setError(
-          result.error || "Error al registrarse. Por favor intenta de nuevo",
-        );
+        // Manejar sugerencia de login si el email ya existe
+        if (result.suggestion === "login") {
+          setError(
+            <>
+              {result.error}{" "}
+              <a href="/login" style={{ color: "white", textDecoration: "underline" }}>
+                Ir a Login
+              </a>
+            </>
+          );
+        } else {
+          setError(result.error || "Error al registrarse. Por favor intenta de nuevo");
+        }
       }
     } catch (err) {
       setLoading(false);

@@ -1,0 +1,1 @@
+ ¡Cloud Functions desplegadas exitosamente! Ahora voy a compilar el proyecto con los cambios de Google SignIn:

@@ -1013,6 +1013,83 @@ table tr:hover {
   }
 }
 
+/* ===== ESTILOS PARA MODAL DE CONTRASEÑA ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.modal-header h2 {
+  color: var(--chinese-red);
+  margin: 0 0 10px 0;
+  font-size: 24px;
+}
+
+.modal-header p {
+  color: #666;
+  margin: 0;
+  font-size: 14px;
+}
+
+.password-modal {
+  border: 2px solid var(--chinese-red);
+}
+
+.btn-secondary {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #aaa;
+}
+
+.btn-secondary:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .success-state p,
 .error-state p {
   color: #666;

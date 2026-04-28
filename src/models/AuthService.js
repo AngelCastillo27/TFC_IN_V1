@@ -104,9 +104,39 @@ class AuthService {
       await setDoc(doc(db, "users", user.uid), userData);
       console.log("✅ Documento creado exitosamente en Firestore");
 
+      // Enviar email de bienvenida
+      await this.sendWelcomeEmail(user.email, user.displayName || name);
+
       return { success: true, user };
     } catch (error) {
-      console.error("❌ Error en registro:", error.message);
+      console.error("❌ Error en registro:", error.code, error.message);
+      
+      // Manejar errores específicos de Firebase
+      if (error.code === "auth/email-already-in-use") {
+        return {
+          success: false,
+          errorCode: error.code,
+          error: "Este email ya está registrado. ¿Quieres iniciar sesión?",
+          suggestion: "login",
+        };
+      }
+      if (error.code === "auth/weak-password") {
+        return {
+          success: false,
+          errorCode: error.code,
+          error: "La contraseña es demasiado débil. Usa al menos 6 caracteres.",
+          suggestion: "password",
+        };
+      }
+      if (error.code === "auth/invalid-email") {
+        return {
+          success: false,
+          errorCode: error.code,
+          error: "El email no es válido.",
+          suggestion: "email",
+        };
+      }
+      
       return { success: false, error: error.message };
     }
   }
@@ -171,7 +201,10 @@ class AuthService {
 
       // Verificar si el usuario existe en Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
+      let isNewUser = false;
+
       if (!userDoc.exists()) {
+        isNewUser = true;
         // Crear documento del usuario con rol 'comensal' por defecto
         await setDoc(doc(db, "users", user.uid), {
           email: user.email,
@@ -186,7 +219,9 @@ class AuthService {
         await this.sendWelcomeEmail(user.email, user.displayName);
       }
 
-      return { success: true, user };
+      // IMPORTANTE: Siempre requerir que el usuario cree una contraseña
+      // para poder acceder con email/password en el futuro
+      return { success: true, user, isNewUser, requiresPassword: true };
     } catch (error) {
       console.error("Error en login con Google:", error);
       return { success: false, error: error.message };
@@ -222,9 +257,6 @@ class AuthService {
     try {
       console.log("🔐 Solicitando reset de contraseña para:", email);
 
-      // Verificar que el usuario existe
-      const userDoc = await getDoc(doc(db, "users")).catch(() => null);
-      
       // Generar token
       const token = this.generateToken();
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // Expira en 15 minutos
@@ -307,8 +339,6 @@ class AuthService {
         return { success: false, error: "Usuario no encontrado" };
       }
 
-      const userId = userQuerySnapshot.docs[0].id;
-
       // Usar Firebase Admin SDK en el backend para cambiar la contraseña
       // Por ahora, guardamos una solicitud de cambio que será procesada por un Cloud Function
       const response = await fetch(
@@ -336,6 +366,41 @@ class AuthService {
       return { success: true, message: "Contraseña actualizada exitosamente" };
     } catch (error) {
       console.error("❌ Error validando token:", error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Método para que usuarios con Google agreguen una contraseña (para poder entrar con email/password)
+  async addPasswordToGoogleUser(password) {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        return { success: false, error: "No hay usuario autenticado" };
+      }
+
+      console.log("🔐 Agregando contraseña al usuario de Google:", user.email);
+
+      // Usar updatePassword de Firebase Auth
+      await updatePassword(user, password);
+      console.log("✅ Contraseña agregada exitosamente");
+
+      return { success: true, message: "Contraseña creada exitosamente" };
+    } catch (error) {
+      console.error("❌ Error agregando contraseña:", error.message);
+      
+      if (error.code === "auth/weak-password") {
+        return {
+          success: false,
+          error: "La contraseña es demasiado débil. Usa al menos 6 caracteres.",
+        };
+      }
+      if (error.code === "auth/requires-recent-login") {
+        return {
+          success: false,
+          error: "Necesitas iniciar sesión nuevamente para cambiar la contraseña",
+        };
+      }
+
       return { success: false, error: error.message };
     }
   }

@@ -33,13 +33,13 @@ const Home = () => {
                   ?? Mi Perfil
                 </button>
                 <button onClick={() => logout()} className="nav-btn btn-logout">
-                  Cerrar Sesi�n
+                  Cerrar Sesión
                 </button>
               </>
             ) : (
               <>
                 <button onClick={() => navigate("/login")} className="nav-btn">
-                  Iniciar Sesi�n
+                  Iniciar Sesión
                 </button>
                 <button
                   onClick={() => navigate("/register")}
@@ -58,14 +58,14 @@ const Home = () => {
         <div className="hero-content">
           <h2>¡Bienvenido a Tsinghe Cocina Fusión!</h2>
           <p className="hero-subtitle">
-            Descubre la m�s aut�ntica cocina china en un ambiente acogedor
+            Descubre la más auténtica cocina china en un ambiente acogedor
           </p>
           <div className="hero-buttons">
             <button
               onClick={() => navigate("/menu")}
               className="btn-primary btn-large"
             >
-              ??? Explorar MENU
+              Explorar MENU
             </button>
             <button
               onClick={() =>

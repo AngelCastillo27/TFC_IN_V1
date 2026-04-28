@@ -13,6 +13,11 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState(null);
 
   // Manejador para el login con email y contraseña
   const handleLoginSubmit = async (e) => {
@@ -44,7 +49,12 @@ const Login = () => {
 
       if (result.success) {
         console.log("✅ Google SignIn exitoso");
-        // El componente se re-renderizará cuando el user se actualice en App.js
+        // Mostrar modal para crear/actualizar contraseña SIEMPRE
+        if (result.requiresPassword) {
+          setShowPasswordModal(true);
+        } else {
+          // El usuario será redirigido automáticamente por App.js
+        }
       } else {
         setError(result.error);
       }
@@ -52,6 +62,39 @@ const Login = () => {
       setLoading(false);
       setError(err.message);
     }
+  };
+
+  // Manejador para agregar contraseña a usuario de Google
+  const handleAddPassword = async (e) => {
+    e.preventDefault();
+    setPasswordError(null);
+
+    // Validar que las contraseñas coincidan
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Las contraseñas no coinciden");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    const result = await AuthService.addPasswordToGoogleUser(newPassword);
+
+    if (result.success) {
+      console.log("✅ Contraseña agregada exitosamente");
+      setShowPasswordModal(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      // El usuario será redirigido automáticamente por App.js
+    } else {
+      setPasswordError(result.error || "Error al agregar contraseña");
+    }
+
+    setPasswordLoading(false);
   };
 
   return (
@@ -128,6 +171,70 @@ const Login = () => {
           </a>
         </div>
       </div>
+
+      {/* Modal para agregar contraseña después de Google SignIn */}
+      {showPasswordModal && (
+        <div className="modal-overlay">
+          <div className="modal-content password-modal">
+            <div className="modal-header">
+              <h2>🔐 Crear Contraseña</h2>
+              <p>Para poder acceder con tu email y contraseña, crea una contraseña</p>
+            </div>
+
+            {passwordError && (
+              <div className="error-message error-box">❌ {passwordError}</div>
+            )}
+
+            <form onSubmit={handleAddPassword}>
+              <div className="form-group">
+                <label htmlFor="newPassword">Contraseña</label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  placeholder="Mínimo 6 caracteres"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="confirmPassword">Confirmar Contraseña</label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Repite tu contraseña"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={passwordLoading}
+                className="btn-primary btn-full-width"
+              >
+                {passwordLoading ? "Guardando..." : "Crear Contraseña"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setPasswordError(null);
+                }}
+                className="btn-secondary btn-full-width"
+                style={{ marginTop: "10px" }}
+              >
+                Omitir (puedes hacerlo después)
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
