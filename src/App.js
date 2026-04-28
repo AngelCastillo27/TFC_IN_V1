@@ -19,6 +19,7 @@ import Menu             from "./views/Menu";
 import Login            from "./views/Login";
 import Register         from "./views/Register";
 import ForgotPassword   from "./views/ForgotPassword";
+import ConfirmReservation from "./views/ConfirmReservation";
 
 // Vistas de usuario autenticado
 import Dashboard        from "./views/Dashboard";
@@ -66,7 +67,7 @@ const AdminRoute = ({ children, isAuthenticated, loading, role }) => {
 
 // ── App principal ───────────────────────────────────────────────────────────
 function App() {
-  const { user, userName, role, loading, logout } = useAuth();
+  const { user, userName, userEmail, role, loading, logout } = useAuth();
   const isAuthenticated = !!user;
 
   return (
@@ -97,12 +98,18 @@ function App() {
           element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ForgotPassword />}
         />
 
+        {/* ── Confirmación de reserva (publica) ──────────────────────────── */}
+        <Route
+          path="/confirm-reservation"
+          element={<ConfirmReservation />}
+        />
+
         {/* ── Rutas de usuario autenticado ────────────────────────────────── */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated} loading={loading}>
-              <Dashboard role={role} userId={user?.uid} userName={userName} logout={logout} />
+              <Dashboard role={role} userId={user?.uid} userName={userName} userEmail={userEmail} logout={logout} />
             </ProtectedRoute>
           }
         />

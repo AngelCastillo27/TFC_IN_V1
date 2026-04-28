@@ -68,11 +68,9 @@ const Menu = () => {
 
   const handleReserveClick = () => {
     if (!user) {
-      // Mostrar alert y redirigir al login
-      alert("Debes iniciar sesi�n para hacer una reserva");
       navigate("/login");
     } else {
-      navigate("/reservations");
+      navigate("/dashboard", { state: { selectedTab: "nueva-reserva" } });
     }
   };
 
@@ -196,9 +194,29 @@ const Menu = () => {
       {/* Call to Action para Reservar */}
       <section className="menu-cta">
         <h2>�Te apetece probar nuestros platos?</h2>
-        <button onClick={handleReserveClick} className="btn-primary btn-large">
-          ?? Reservar una Mesa
-        </button>
+        {!user ? (
+          <div className="cta-buttons">
+            <button
+              onClick={() => navigate("/login")}
+              className="btn-primary btn-large"
+            >
+              🔐 Inicia Sesión para Reservar
+            </button>
+            <p className="cta-secondary-text">
+              ¿No tienes cuenta?{" "}
+              <button
+                onClick={() => navigate("/register")}
+                className="link-btn"
+              >
+                Regístrate aquí
+              </button>
+            </p>
+          </div>
+        ) : (
+          <button onClick={handleReserveClick} className="btn-primary btn-large">
+            📅 Reservar una Mesa
+          </button>
+        )}
       </section>
     </div>
   );

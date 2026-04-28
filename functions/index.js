@@ -787,3 +787,210 @@ exports.initMenuBasic = onRequest(
     }
   },
 );
+
+// ════════════════════════════════════════════════════════════════════════════
+// 8. HTTP: enviar confirmación de reserva por email
+//    Llamado desde el cliente cuando se crea una reserva
+// ════════════════════════════════════════════════════════════════════════════
+exports.sendReservationConfirmation = onRequest(
+  {
+    region: "us-central1",
+    cors: "*",
+    invoker: "public",
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Solo POST" });
+      return;
+    }
+
+    try {
+      const nodemailer = require("nodemailer");
+      const { email, reservationDetails, confirmationToken } = req.body;
+
+      if (!email || !reservationDetails) {
+        res.status(400).json({
+          error: "Email y detalles de reserva son obligatorios",
+        });
+        return;
+      }
+
+      // Configurar Nodemailer con Gmail
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.GMAIL_USER || "tsinghecocinafusion@gmail.com",
+          pass: process.env.GMAIL_PASS,
+        },
+      });
+
+      // Generar HTML del email
+      const confirmationLink = `https://digitalizacion-tsinge-fusion.web.app/confirm-reservation?token=${confirmationToken}`;
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f5f5; padding: 20px; border-radius: 8px;">
+          <div style="background: white; padding: 30px; border-radius: 8px; border-left: 4px solid #DC143C;">
+            <h1 style="color: #DC143C; margin-top: 0;">¡Reserva Confirmada! 📅</h1>
+            <p>Hola ${reservationDetails.userName},</p>
+            <p>Tu reserva en <strong>Tsinghe Cocina Fusión</strong> ha sido registrada.</p>
+            
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 6px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">Detalles de tu Reserva:</h3>
+              <p><strong>Fecha:</strong> ${reservationDetails.date}</p>
+              <p><strong>Hora:</strong> ${reservationDetails.time}</p>
+              <p><strong>Personas:</strong> ${reservationDetails.numberOfPeople}</p>
+              <p><strong>Mesa:</strong> ${reservationDetails.tableNumber || "Por asignar"}</p>
+              ${reservationDetails.specialRequests ? `<p><strong>Solicitudes especiales:</strong> ${reservationDetails.specialRequests}</p>` : ""}
+            </div>
+
+            <p>Para confirmar tu reserva, haz clic en el botón de abajo:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${confirmationLink}" style="background: #DC143C; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Confirmar Reserva</a>
+            </div>
+
+            <p style="color: #666; font-size: 12px; margin-top: 30px;">
+              O copia este enlace en tu navegador:<br>
+              <small>${confirmationLink}</small>
+            </p>
+
+            <p style="color: #666;">
+              Si no realizaste esta reserva, ignora este email.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              Tsinghe Cocina Fusión - Auténtica Cocina China<br>
+              © 2024 Todos los derechos reservados
+            </p>
+          </div>
+        </div>
+      `;
+
+      await transporter.sendMail({
+        from: "Tsinghe Cocina Fusión <tsinghecocinafusion@gmail.com>",
+        to: email,
+        subject: "📅 Confirmación de tu Reserva en Tsinghe Cocina Fusión",
+        html: emailHtml,
+      });
+
+      logger.info("Email de confirmación de reserva enviado a:", email);
+
+      res.status(200).json({
+        success: true,
+        message: "Email de confirmación enviado",
+      });
+    } catch (error) {
+      logger.error("Error enviando email de confirmación:", error);
+      res.status(500).json({
+        error: "Error enviando email: " + error.message,
+      });
+    }
+  },
+);
+
+// ════════════════════════════════════════════════════════════════════════════
+// 9. HTTP: confirmar token de reserva
+//    Llamado desde el link en el email de confirmación
+// ════════════════════════════════════════════════════════════════════════════
+exports.confirmReservationToken = onRequest(
+  {
+    region: "us-central1",
+    cors: "*",
+    invoker: "public",
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Solo POST" });
+      return;
+    }
+
+    try {
+      const { token } = req.body;
+
+      if (!token) {
+        res.status(400).json({ error: "Token es obligatorio" });
+        return;
+      }
+
+      // Buscar el token en la colección reservationConfirmations
+      const snapshot = await db
+        .collection("reservationConfirmations")
+        .where("token", "==", token)
+        .where("used", "==", false)
+        .limit(1)
+        .get();
+
+      if (snapshot.empty) {
+        res.status(400).json({ error: "Token no válido o ya fue usado" });
+        return;
+      }
+
+      const tokenDoc = snapshot.docs[0];
+      const tokenData = tokenDoc.data();
+
+      // Verificar que no haya expirado (24 horas)
+      const expiryTime = new Date(tokenData.createdAt.toDate());
+      expiryTime.setHours(expiryTime.getHours() + 24);
+
+      if (new Date() > expiryTime) {
+        res.status(400).json({ error: "El token ha expirado" });
+        return;
+      }
+
+      // Marcar el token como usado
+      await tokenDoc.ref.update({
+        used: true,
+        usedAt: admin.firestore.Timestamp.now(),
+      });
+
+      // Actualizar la reserva a "confirmada"
+      const reservationRef = db
+        .collection("reservations")
+        .doc(tokenData.reservationId);
+      await reservationRef.update({
+        status: "confirmada",
+        confirmedAt: admin.firestore.Timestamp.now(),
+      });
+
+      // Verificar si el usuario existe en Firestore
+      const userQuery = await db
+        .collection("users")
+        .where("email", "==", tokenData.email)
+        .limit(1)
+        .get();
+
+      const userExists = !userQuery.empty;
+
+      logger.info("Reserva confirmada con token para:", tokenData.email);
+
+      res.status(200).json({
+        success: true,
+        email: tokenData.email,
+        userExists,
+        message: "Reserva confirmada exitosamente",
+      });
+    } catch (error) {
+      logger.error("Error confirmando token de reserva:", error);
+      res.status(500).json({
+        error: "Error interno: " + error.message,
+      });
+    }
+  },
+);

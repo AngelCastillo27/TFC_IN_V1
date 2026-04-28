@@ -16,6 +16,16 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
+// Generar token aleatorio de 20 caracteres para confirmación
+const generateConfirmationToken = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let token = "";
+  for (let i = 0; i < 20; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+};
+
 class ReservationService {
   // Crear una nueva reserva
   async createReservation(reservationData) {
@@ -42,6 +52,42 @@ class ReservationService {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      // Generar token de confirmación
+      const confirmationToken = generateConfirmationToken();
+      await addDoc(collection(db, "reservationConfirmations"), {
+        reservationId: docRef.id,
+        email: reservationData.userEmail,
+        token: confirmationToken,
+        used: false,
+        createdAt: serverTimestamp(),
+      });
+
+      // Enviar email de confirmación (llamar Cloud Function)
+      try {
+        await fetch(
+          "https://us-central1-digitalizacion-tsinge-fusion.cloudfunctions.net/sendReservationConfirmation",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: reservationData.userEmail,
+              reservationDetails: {
+                userName: reservationData.userName,
+                date: reservationData.reservationDate,
+                time: reservationData.reservationTime,
+                numberOfPeople: reservationData.numberOfPeople,
+                tableNumber: reservationData.tableId,
+                specialRequests: reservationData.specialRequests,
+              },
+              confirmationToken,
+            }),
+          }
+        );
+      } catch (emailError) {
+        console.error("⚠️ Error enviando email de confirmación:", emailError);
+        // No fallar la creación de reserva si el email falla
+      }
 
       console.log("✅ Reserva creada:", docRef.id);
       return { success: true, reservationId: docRef.id };

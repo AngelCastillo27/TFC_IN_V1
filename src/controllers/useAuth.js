@@ -1,7 +1,7 @@
 // Controlador: useAuth.js
 // Este hook personalizado maneja la lógica de control para la autenticación.
 // Gestiona el estado del login, errores, y llamadas al modelo AuthService.
-// Ahora extendido para incluir el rol del usuario y su nombre desde Firestore.
+// Ahora extendido para incluir el rol del usuario, su nombre y email desde Firestore.
 
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
@@ -13,6 +13,8 @@ const useAuth = () => {
   const [user, setUser] = useState(null);
   // Estado para el nombre del usuario desde Firestore
   const [userName, setUserName] = useState(null);
+  // Estado para el email del usuario
+  const [userEmail, setUserEmail] = useState(null);
   // Estado para el rol del usuario
   const [role, setRole] = useState(null);
   // Estado para indicar si está cargando
@@ -25,6 +27,9 @@ const useAuth = () => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
+        // Guardar el email
+        setUserEmail(currentUser.email);
+
         // Obtener el rol desde Firestore
         const userRole = await AuthService.getUserRole(currentUser.uid);
         setRole(userRole);
@@ -41,6 +46,7 @@ const useAuth = () => {
       } else {
         setRole(null);
         setUserName(null);
+        setUserEmail(null);
       }
       setLoading(false);
     });
@@ -73,6 +79,7 @@ const useAuth = () => {
       setUser(null);
       setRole(null);
       setUserName(null);
+      setUserEmail(null);
     } else {
       setError(result.error);
     }
@@ -81,6 +88,7 @@ const useAuth = () => {
   return {
     user,
     userName,
+    userEmail,
     role,
     loading,
     error,

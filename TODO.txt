@@ -1,11 +1,18 @@
-GENERAR MENU BASICO CON DATOS
+#	Tarea	Estado
+1	CREAR VISTA PÚBLICA VS REGISTRADA	✅ COMPLETADA
+2	SIDEBAR DESPLEGABLE Y PLEGABLE	✅ COMPLETADA
+3	SISTEMA DE RESERVA SINCRONIZADO	✅ COMPLETADA
+4	VALIDACIÓN: NO 2 USUARIOS/MESA	✅ COMPLETADA
+5	ADMIN: HACER RESERVA PARA USUARIOS	✅ COMPLETADA
+6	EMAIL DE CONFIRMACIÓN RESERVA	✅ COMPLETADA
+7	AUTOCREAR PERFIL DESDE CONFIRMACIÓN	❌ FALTA
 
-Todo:
-CREAR VISTA PUBLICA VS REGISTRADA
-SIDEBAR DESPLEGABLE Y PLEGABE PARA COMENSAL Y admin
-SISTEMA DE RESERVA SINCRONIZADO
-VALIDACION DE : NO 2 USUARIOS EN LA MISMA MESA/HORA
-ADMIN: HACER RESERVA PARA USUARIOS
-EMAIL DE CONFIRMACION RESERVA 
-AUTOCREAR PERFIL DESDE CONFIRMACION
-VERIFICAR NO-SHOW A LOS 15 MINS
+📌 Las 2 tareas que faltan:
+Tarea 7: Auto-crear Perfil desde Confirmación
+Cuando el usuario hace click en el email de confirmación
+Si no existe en el sistema → redirigir a /register?email=xxx pre-llenado
+Crear el perfil automáticamente sin necesidad de token adicional
+Tarea 8: Verificar No-Show a 15 Minutos
+Cloud Function scheduled que se dispare cada 15 minutos
+Verificar reservas cuya hora ya pasó
+Marcar automáticamente como "no-asistió" si no fue confirmada en persona
