@@ -45,7 +45,7 @@ const AdminReservationForm = ({ onReservationCreated }) => {
       const filtered = users.filter(
         (user) =>
           user.name.toLowerCase().includes(term) ||
-          user.email.toLowerCase().includes(term)
+          user.email.toLowerCase().includes(term),
       );
       setFilteredUsers(filtered);
     }
@@ -75,12 +75,12 @@ const AdminReservationForm = ({ onReservationCreated }) => {
     try {
       const result = await ReservationService.getAvailableTables(
         formData.reservationDate,
-        formData.reservationTime
+        formData.reservationTime,
       );
 
       if (result.success) {
         const filtered = result.tables.filter(
-          (table) => table.capacity >= formData.numberOfPeople
+          (table) => table.capacity >= formData.numberOfPeople,
         );
         setAvailableTables(filtered);
         if (filtered.length > 0) {
@@ -144,9 +144,9 @@ const AdminReservationForm = ({ onReservationCreated }) => {
         email: newUserData.email.trim(),
         phone: newUserData.phone.trim() || "",
         role: "comensal",
-        status: "pendiente_verificacion",
+        status: "verificado", // El admin lo crea directamente, se marca como verificado
         createdAt: new Date(),
-        emailVerified: false,
+        emailVerified: true, // El admin crea el usuario, se considera verificado
       };
 
       const result = await UserService.createUser(userData);
@@ -195,11 +195,14 @@ const AdminReservationForm = ({ onReservationCreated }) => {
             email: email,
             name: name,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
-        console.error("Error enviando email de verificación:", response.statusText);
+        console.error(
+          "Error enviando email de verificación:",
+          response.statusText,
+        );
       }
     } catch (error) {
       console.error("Error enviando email:", error);
@@ -249,10 +252,13 @@ const AdminReservationForm = ({ onReservationCreated }) => {
         reservationTime: formData.reservationTime,
         numberOfPeople: formData.numberOfPeople,
         specialRequests: formData.specialRequests,
-        status: selectedUser.emailVerified ? "confirmada" : "pendiente_confirmacion",
+        status: selectedUser.emailVerified
+          ? "confirmada"
+          : "pendiente_confirmacion",
       };
 
-      const result = await ReservationService.createReservation(reservationData);
+      const result =
+        await ReservationService.createReservation(reservationData);
 
       if (result.success) {
         setSuccess(true);
@@ -333,8 +339,11 @@ const AdminReservationForm = ({ onReservationCreated }) => {
                       >
                         <div className="user-name">{user.name}</div>
                         <div className="user-email">{user.email}</div>
+                        {/* Mostrar badge si emailVerified es false o undefined (usuario no verificado) */}
                         {!user.emailVerified && (
-                          <span className="badge-pending">Pendiente verificación</span>
+                          <span className="badge-pending">
+                            Pendiente verificación
+                          </span>
                         )}
                       </div>
                     ))}
@@ -545,7 +554,8 @@ const AdminReservationForm = ({ onReservationCreated }) => {
               >
                 {availableTables.map((table) => (
                   <option key={table.id} value={table.id}>
-                    Mesa {table.tableNumber} - Capacidad: {table.capacity} personas
+                    Mesa {table.tableNumber} - Capacidad: {table.capacity}{" "}
+                    personas
                   </option>
                 ))}
               </select>
@@ -554,7 +564,9 @@ const AdminReservationForm = ({ onReservationCreated }) => {
 
           {/* Solicitudes especiales */}
           <div className="form-group">
-            <label htmlFor="specialRequests">Solicitudes especiales (opcional)</label>
+            <label htmlFor="specialRequests">
+              Solicitudes especiales (opcional)
+            </label>
             <textarea
               id="specialRequests"
               name="specialRequests"
@@ -575,11 +587,13 @@ const AdminReservationForm = ({ onReservationCreated }) => {
           </button>
         </form>
 
-        {availableTables.length === 0 && formData.reservationDate && formData.reservationTime && (
-          <div className="info-message">
-            ℹ️ No hay mesas disponibles para la fecha y hora seleccionadas
-          </div>
-        )}
+        {availableTables.length === 0 &&
+          formData.reservationDate &&
+          formData.reservationTime && (
+            <div className="info-message">
+              ℹ️ No hay mesas disponibles para la fecha y hora seleccionadas
+            </div>
+          )}
       </div>
     </div>
   );

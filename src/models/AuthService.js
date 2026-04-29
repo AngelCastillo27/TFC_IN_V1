@@ -16,6 +16,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   serverTimestamp,
   deleteField,
 } from "firebase/firestore";
@@ -86,18 +87,35 @@ class AuthService {
       const user = userCredential.user;
       console.log("✅ Usuario creado en Auth:", user.uid);
 
-      // 2. Crear documento en Firestore
-      const userData = {
-        email: user.email,
-        name: name.trim(),
-        role: "comensal",
-        status: "active",
-        createdAt: serverTimestamp(),
-      };
+      // 2. Verificar si ya existe documento en Firestore (creado por admin)
+      // Si existe, actualizar; si no, crear nuevo
+      const userDocRef = doc(db, "users", user.uid);
+      const existingDoc = await getDoc(userDocRef);
 
-      console.log("📝 Creando documento en Firestore:", userData);
-      await setDoc(doc(db, "users", user.uid), userData);
-      console.log("✅ Documento creado exitosamente en Firestore");
+      if (existingDoc.exists()) {
+        // El usuario ya existía (creado por admin), actualizar como verificado
+        console.log("📝 Actualizando documento existente en Firestore");
+        await updateDoc(userDocRef, {
+          name: name.trim(),
+          status: "active",
+          emailVerified: true, // El usuario verificó su correo
+          role: existingDoc.data().role || "comensal", // Mantener rol original
+        });
+      } else {
+        // Nuevo usuario, crear documento
+        console.log("📝 Creando nuevo documento en Firestore");
+        const userData = {
+          email: user.email,
+          name: name.trim(),
+          role: "comensal",
+          status: "active",
+          createdAt: serverTimestamp(),
+          emailVerified: true, // Usuario verificado al registrarse personalmente
+        };
+        await setDoc(userDocRef, userData);
+      }
+
+      console.log("✅ Documento guardado exitosamente en Firestore");
 
       // Enviar email de bienvenida
       await this.sendWelcomeEmail(user.email, user.displayName || name);
@@ -363,7 +381,7 @@ class AuthService {
       await setDoc(
         doc(db, "users", user.uid),
         { passwordConfigured: true },
-        { merge: true }
+        { merge: true },
       );
       console.log("✅ Contraseña marcada como configurada en Firestore");
 
