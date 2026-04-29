@@ -1,5 +1,6 @@
 // Componente: AdminReservationForm.js
 // Formulario para que el admin cree reservas en nombre de otros usuarios
+// Con búsqueda en tiempo real y opción de crear usuario
 
 import React, { useState, useEffect } from "react";
 import ReservationService from "../models/ReservationService";
@@ -15,7 +16,15 @@ const AdminReservationForm = ({ onReservationCreated }) => {
     specialRequests: "",
   });
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showNewUserForm, setShowNewUserForm] = useState(false);
+  const [newUserData, setNewUserData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
   const [availableTables, setAvailableTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -26,6 +35,21 @@ const AdminReservationForm = ({ onReservationCreated }) => {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  // Filtrar usuarios por búsqueda en tiempo real
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setFilteredUsers(users);
+    } else {
+      const term = searchTerm.toLowerCase();
+      const filtered = users.filter(
+        (user) =>
+          user.name.toLowerCase().includes(term) ||
+          user.email.toLowerCase().includes(term)
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchTerm, users]);
 
   // Cargar mesas disponibles cuando cambia fecha/hora
   useEffect(() => {
@@ -85,6 +109,101 @@ const AdminReservationForm = ({ onReservationCreated }) => {
       ...prev,
       userEmail: user?.email || "",
     }));
+    setShowNewUserForm(false);
+    setSearchTerm("");
+  };
+
+  // Crear nuevo usuario
+  const handleCreateNewUser = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!newUserData.name.trim()) {
+      setError("Por favor ingresa el nombre del usuario");
+      return;
+    }
+
+    if (!newUserData.email.trim()) {
+      setError("Por favor ingresa el email del usuario");
+      return;
+    }
+
+    // Validar que el email no exista ya
+    const emailExists = users.some((u) => u.email === newUserData.email);
+    if (emailExists) {
+      setError("Este email ya está registrado");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Crear usuario en Firestore
+      const userData = {
+        name: newUserData.name.trim(),
+        email: newUserData.email.trim(),
+        phone: newUserData.phone.trim() || "",
+        role: "comensal",
+        status: "pendiente_verificacion",
+        createdAt: new Date(),
+        emailVerified: false,
+      };
+
+      const result = await UserService.createUser(userData);
+
+      if (result.success) {
+        // Enviar email de verificación
+        await sendVerificationEmail(newUserData.email, newUserData.name);
+
+        // Crear objeto del nuevo usuario para seleccionarlo
+        const newUser = {
+          id: result.id,
+          ...userData,
+        };
+
+        // Agregar a la lista de usuarios
+        setUsers((prev) => [...prev, newUser]);
+        setSelectedUser(newUser);
+        setFormData((prev) => ({
+          ...prev,
+          userEmail: newUser.email,
+        }));
+
+        setNewUserData({ name: "", email: "", phone: "" });
+        setShowNewUserForm(false);
+        setSearchTerm("");
+        setError("Usuario creado. Se envió email de verificación.");
+      } else {
+        setError(result.error || "Error al crear usuario");
+      }
+    } catch (err) {
+      setError(err.message || "Error inesperado");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Enviar email de verificación
+  const sendVerificationEmail = async (email, name) => {
+    try {
+      const response = await fetch(
+        "https://us-central1-digitalizacion-tsinge-fusion.cloudfunctions.net/sendVerificationEmail",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            name: name,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("Error enviando email de verificación:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error enviando email:", error);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -130,7 +249,7 @@ const AdminReservationForm = ({ onReservationCreated }) => {
         reservationTime: formData.reservationTime,
         numberOfPeople: formData.numberOfPeople,
         specialRequests: formData.specialRequests,
-        status: "confirmada", // Admin la crea directamente confirmada
+        status: selectedUser.emailVerified ? "confirmada" : "pendiente_confirmacion",
       };
 
       const result = await ReservationService.createReservation(reservationData);
@@ -183,23 +302,182 @@ const AdminReservationForm = ({ onReservationCreated }) => {
         )}
 
         <form onSubmit={handleSubmit} className="reservation-form">
-          {/* Usuario */}
+          {/* Seleccionar Usuario - Con búsqueda en tiempo real */}
           <div className="form-group">
-            <label htmlFor="userSelect">Seleccionar Usuario</label>
-            <select
-              id="userSelect"
-              value={selectedUser?.id || ""}
-              onChange={handleUserChange}
-              required
-            >
-              <option value="">-- Selecciona un usuario --</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.email})
-                </option>
-              ))}
-            </select>
+            <label htmlFor="userSearch">Seleccionar Usuario</label>
+            {!selectedUser ? (
+              <>
+                <input
+                  id="userSearch"
+                  type="text"
+                  placeholder="Busca por nombre o correo..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+
+                {filteredUsers.length > 0 && (
+                  <div className="user-list">
+                    {filteredUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        className="user-item"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setFormData((prev) => ({
+                            ...prev,
+                            userEmail: user.email,
+                          }));
+                          setSearchTerm("");
+                        }}
+                      >
+                        <div className="user-name">{user.name}</div>
+                        <div className="user-email">{user.email}</div>
+                        {!user.emailVerified && (
+                          <span className="badge-pending">Pendiente verificación</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {searchTerm.trim() !== "" && filteredUsers.length === 0 && (
+                  <div className="no-results">
+                    <p>No se encontraron usuarios</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewUserForm(true)}
+                      className="btn-secondary btn-small"
+                    >
+                      ➕ Añadir nuevo usuario
+                    </button>
+                  </div>
+                )}
+
+                {searchTerm.trim() === "" && users.length === 0 && (
+                  <div className="no-results">
+                    <p>No hay usuarios registrados</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewUserForm(true)}
+                      className="btn-secondary btn-small"
+                    >
+                      ➕ Crear nuevo usuario
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="selected-user">
+                  <div>
+                    <strong>{selectedUser.name}</strong>
+                    <div style={{ fontSize: "12px", color: "#666" }}>
+                      {selectedUser.email}
+                    </div>
+                    {!selectedUser.emailVerified && (
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#FF6B6B",
+                          marginTop: "4px",
+                        }}
+                      >
+                        ⚠️ Pendiente de verificación de correo
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setSearchTerm("");
+                    }}
+                    className="btn-secondary btn-small"
+                  >
+                    Cambiar
+                  </button>
+                </div>
+              </>
+            )}
           </div>
+
+          {/* Formulario para crear nuevo usuario */}
+          {showNewUserForm && !selectedUser && (
+            <div className="new-user-form">
+              <h3>Crear nuevo usuario</h3>
+              <div className="form-group">
+                <label htmlFor="newUserName">Nombre completo</label>
+                <input
+                  id="newUserName"
+                  type="text"
+                  placeholder="Ej: Juan Pérez"
+                  value={newUserData.name}
+                  onChange={(e) =>
+                    setNewUserData((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="newUserEmail">Email</label>
+                <input
+                  id="newUserEmail"
+                  type="email"
+                  placeholder="Ej: juan@email.com"
+                  value={newUserData.email}
+                  onChange={(e) =>
+                    setNewUserData((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="newUserPhone">Teléfono (opcional)</label>
+                <input
+                  id="newUserPhone"
+                  type="tel"
+                  placeholder="Ej: +34 123 456 789"
+                  value={newUserData.phone}
+                  onChange={(e) =>
+                    setNewUserData((prev) => ({
+                      ...prev,
+                      phone: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  type="button"
+                  onClick={handleCreateNewUser}
+                  disabled={loading}
+                  className="btn-primary"
+                >
+                  {loading ? "Creando..." : "Crear usuario"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewUserForm(false);
+                    setNewUserData({ name: "", email: "", phone: "" });
+                  }}
+                  className="btn-secondary"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Fecha */}
           <div className="form-group">

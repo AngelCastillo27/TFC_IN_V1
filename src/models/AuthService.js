@@ -214,9 +214,22 @@ class AuthService {
         await this.sendWelcomeEmail(user.email, user.displayName);
       }
 
-      // IMPORTANTE: Siempre requerir que el usuario cree una contraseña
-      // para poder acceder con email/password en el futuro
-      return { success: true, user, isNewUser, requiresPassword: true };
+      // Verificar si el usuario ya configuró su contraseña
+      const passwordConfigured = userDoc.exists()
+        ? userDoc.data().passwordConfigured
+        : false;
+
+      // Requerir contraseña solo si es nuevo usuario
+      // o si es un usuario existente que aún no ha configurado contraseña
+      const requiresPassword = isNewUser || !passwordConfigured;
+
+      return {
+        success: true,
+        user,
+        isNewUser,
+        requiresPassword,
+        passwordConfigured,
+      };
     } catch (error) {
       console.error("Error en login con Google:", error);
       return { success: false, error: error.message };
@@ -345,6 +358,14 @@ class AuthService {
       // Usar updatePassword de Firebase Auth
       await updatePassword(user, password);
       console.log("✅ Contraseña agregada exitosamente");
+
+      // Marcar en Firestore que el usuario ya configuró su contraseña
+      await setDoc(
+        doc(db, "users", user.uid),
+        { passwordConfigured: true },
+        { merge: true }
+      );
+      console.log("✅ Contraseña marcada como configurada en Firestore");
 
       return { success: true, message: "Contraseña creada exitosamente" };
     } catch (error) {

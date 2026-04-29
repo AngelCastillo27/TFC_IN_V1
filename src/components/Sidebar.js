@@ -22,7 +22,8 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
           { id: "admin-crear-reserva", label: "Crear Reserva", icon: "Crear" },
         ]
       : [
-          { id: "inicio", label: "Inicio", icon: "Inicio" },
+          { id: "inicio", label: "Dashboard", icon: "Panel" },
+          { id: "preview-inicio", label: "Ver Inicio", icon: "Vista" },
           { id: "reservas", label: "Mis Reservas", icon: "Lista" },
           { id: "nueva-reserva", label: "Nueva Reserva", icon: "Crear" },
         ];

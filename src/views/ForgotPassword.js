@@ -264,11 +264,13 @@ const ForgotPassword = () => {
           </form>
         )}
 
-        <div className="forgot-password-links">
-          <a href="/login" className="link-button">
-            Volver al Login
-          </a>
-        </div>
+        {!isGoogleSetup && (
+          <div className="forgot-password-links">
+            <a href="/login" className="link-button">
+              Volver al Login
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

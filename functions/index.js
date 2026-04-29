@@ -301,7 +301,119 @@ exports.initTables = onRequest(
 );
 
 // ════════════════════════════════════════════════════════════════════════════
-// 5. HTTP: enviar email con token para reset de contraseña
+// 5. HTTP: enviar email de verificación para usuarios creados por admin
+// ════════════════════════════════════════════════════════════════════════════
+exports.sendVerificationEmail = onRequest(
+  {
+    region: "us-central1",
+    cors: "*",
+    invoker: "public",
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Metodo no permitido" });
+      return;
+    }
+
+    try {
+      const { email, name } = req.body;
+
+      if (!email) {
+        res.status(400).json({ error: "Email es obligatorio" });
+        return;
+      }
+
+      const displayName = name || email.split("@")[0];
+
+      // Enviar email de verificación
+      const info = await transporter.sendMail({
+        from: '"Tsinghe Cocina Fusión" <tsinghecocinafusion@gmail.com>',
+        to: email,
+        subject: "Verificar tu cuenta - Tsinghe Cocina Fusión 🔐",
+        html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5dc; margin: 0; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; }
+            .header { background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%); padding: 30px; text-align: center; }
+            .header h1 { color: white; margin: 0; font-size: 28px; }
+            .content { padding: 30px; }
+            .content h2 { color: #dc143c; margin-top: 0; }
+            .content p { color: #333; line-height: 1.6; }
+            .button { display: inline-block; background: #dc143c; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
+            .info-box { background: #fffacd; border-left: 4px solid #dc143c; padding: 15px; margin: 20px 0; }
+            .footer { background: #1a1a1a; padding: 20px; text-align: center; color: #888; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🍜 Tsinghe Cocina Fusión</h1>
+            </div>
+            <div class="content">
+              <h2>¡Hola ${displayName}!</h2>
+              <p>Tu cuenta ha sido creada por el administrador de <strong>Tsinghe Cocina Fusión</strong>.</p>
+              
+              <div class="info-box">
+                <strong>📋 Tu reserva está pendiente de confirmación</strong>
+                <p>Se ha creado una reserva a tu nombre. Para que sea válida, necesitas:</p>
+                <ul>
+                  <li>Verificar este correo (haciendo clic en el botón de abajo)</li>
+                  <li>Crear una contraseña segura en tu cuenta</li>
+                </ul>
+              </div>
+
+              <p>Una vez completes estos pasos, tu reserva será confirmada automáticamente.</p>
+
+              <a href="https://digitalizacion-tsinge-fusion.web.app/login" class="button">Confirmar mi cuenta</a>
+              
+              <p style="color: #999; font-size: 12px; margin-top: 30px;">
+                Si no fuiste tú quien creó esta cuenta, puedes ignorar este mensaje.
+              </p>
+            </div>
+            <div class="footer">
+              <p>© 2024 Tsinghe Cocina Fusión. Todos los derechos reservados.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      });
+
+      logger.info("EMAIL DE VERIFICACIÓN enviado:", {
+        to: email,
+        name: displayName,
+        messageId: info.messageId,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Email de verificación enviado a " + email,
+        messageId: info.messageId,
+      });
+    } catch (error) {
+      logger.error("Error enviando email de verificación:", error);
+      res.status(500).json({
+        error: "Error al enviar el email: " + error.message,
+      });
+    }
+  },
+);
+
+// ════════════════════════════════════════════════════════════════════════════
+// 6. HTTP: enviar email con token para reset de contraseña
 // ════════════════════════════════════════════════════════════════════════════
 exports.sendPasswordResetEmail = onRequest(
   {

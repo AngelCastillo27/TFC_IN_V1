@@ -34,25 +34,31 @@ const Login = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
-    sessionStorage.setItem("googlePasswordSetupPending", "true");
 
     try {
       const result = await AuthService.loginWithGoogle();
 
       if (result.success) {
         console.log("Google SignIn exitoso", result);
-        navigate(
-          `/forgot-password?email=${encodeURIComponent(
-            result.user.email,
-          )}&setup=google`,
-          { replace: true },
-        );
+
+        // Solo redirigir a crear contraseña si es requerido
+        if (result.requiresPassword) {
+          sessionStorage.setItem("googlePasswordSetupPending", "true");
+          navigate(
+            `/forgot-password?email=${encodeURIComponent(
+              result.user.email,
+            )}&setup=google`,
+            { replace: true },
+          );
+        } else {
+          // Usuario ya configuró su contraseña, ir al dashboard
+          console.log("Usuario ya tiene contraseña configurada, ir al dashboard");
+          navigate("/dashboard", { replace: true });
+        }
       } else {
-        sessionStorage.removeItem("googlePasswordSetupPending");
         setError(result.error || "Error al iniciar sesion con Google");
       }
     } catch (err) {
-      sessionStorage.removeItem("googlePasswordSetupPending");
       setError(err.message);
     } finally {
       setLoading(false);

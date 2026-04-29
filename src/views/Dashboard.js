@@ -26,7 +26,7 @@ const WelcomePanel = ({ role, userName }) => (
     <h2 style={{ color: "#DC143C", marginBottom: "8px" }}>
       {role === "admin"
         ? `Panel de Administración`
-        : `¡Bienvenido, ${userName}!`}
+        : `¡Bienvenido, ${userName || "Usuario"}!`}
     </h2>
     {role !== "admin" && (
       <p style={{ color: "#888", fontSize: "14px", marginBottom: "12px" }}>
