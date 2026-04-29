@@ -1,8 +1,7 @@
 // NavigationBar.js
 // Barra de navegacion superior adaptada al rol del usuario.
 // No logueado:  Inicio | Menu | Iniciar sesion | Registrarse
-// Comensal:     Inicio | Menu | Reservas | (menu usuario con logout)
-// Admin:        Inicio | Menu | Admin Menu | Admin Mesas | Admin Ofertas | (menu usuario con logout)
+// Logueado:     Dashboard con sidebar | (menu usuario con logout)
 
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -45,7 +44,7 @@ const NavigationBar = ({ isAuthenticated, user, role, logout }) => {
     >
       {/* ── Logo ──────────────────────────────────────────────────────────── */}
       <Link
-        to="/"
+        to={isAuthenticated ? "/dashboard" : "/"}
         style={{
           color: "#DC143C",
           textDecoration: "none",
@@ -69,62 +68,24 @@ const NavigationBar = ({ isAuthenticated, user, role, logout }) => {
           flexWrap: "wrap",
         }}
       >
-        <Link
-          to="/"
-          style={NAV_LINK}
-          onMouseEnter={(e) => (e.target.style.color = "#DC143C")}
-          onMouseLeave={(e) => (e.target.style.color = "#E8E8E8")}
-        >
-          Inicio
-        </Link>
-
-        <Link
-          to="/menu"
-          style={NAV_LINK}
-          onMouseEnter={(e) => (e.target.style.color = "#DC143C")}
-          onMouseLeave={(e) => (e.target.style.color = "#E8E8E8")}
-        >
-          Menu
-        </Link>
-
-        {/* Solo comensal logueado */}
-        {isAuthenticated && role === "comensal" && (
-          <Link
-            to="/reservations"
-            style={NAV_LINK}
-            onMouseEnter={(e) => (e.target.style.color = "#DC143C")}
-            onMouseLeave={(e) => (e.target.style.color = "#E8E8E8")}
-          >
-            Mis Reservas
-          </Link>
-        )}
-
-        {/* Solo admin logueado */}
-        {isAuthenticated && role === "admin" && (
+        {!isAuthenticated && (
           <>
             <Link
-              to="/admin/menu"
-              style={{ ...NAV_LINK, color: "#FFD700" }}
+              to="/"
+              style={NAV_LINK}
               onMouseEnter={(e) => (e.target.style.color = "#DC143C")}
-              onMouseLeave={(e) => (e.target.style.color = "#FFD700")}
+              onMouseLeave={(e) => (e.target.style.color = "#E8E8E8")}
             >
-              Admin Menu
+              Inicio
             </Link>
+
             <Link
-              to="/admin/tables"
-              style={{ ...NAV_LINK, color: "#FFD700" }}
+              to="/menu"
+              style={NAV_LINK}
               onMouseEnter={(e) => (e.target.style.color = "#DC143C")}
-              onMouseLeave={(e) => (e.target.style.color = "#FFD700")}
+              onMouseLeave={(e) => (e.target.style.color = "#E8E8E8")}
             >
-              Admin Mesas
-            </Link>
-            <Link
-              to="/admin/offers"
-              style={{ ...NAV_LINK, color: "#FFD700" }}
-              onMouseEnter={(e) => (e.target.style.color = "#DC143C")}
-              onMouseLeave={(e) => (e.target.style.color = "#FFD700")}
-            >
-              Admin Ofertas
+              Menu
             </Link>
           </>
         )}
@@ -196,37 +157,6 @@ const NavigationBar = ({ isAuthenticated, user, role, logout }) => {
                 >
                   Mi Panel
                 </Link>
-
-                {role === "admin" && (
-                  <div style={{ borderBottom: "1px solid #444" }}>
-                    {[
-                      { to: "/admin/menu", label: "Gestion Menu" },
-                      { to: "/admin/tables", label: "Gestion Mesas" },
-                      { to: "/admin/offers", label: "Gestion Ofertas" },
-                    ].map((item) => (
-                      <Link
-                        key={item.to}
-                        to={item.to}
-                        onClick={() => setShowUserMenu(false)}
-                        style={{
-                          display: "block",
-                          padding: "10px 16px",
-                          color: "#FFD700",
-                          textDecoration: "none",
-                          fontSize: "13px",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background = "#3a3a3a")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.background = "transparent")
-                        }
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
 
                 <button
                   onClick={handleLogout}

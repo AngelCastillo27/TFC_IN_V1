@@ -1,9 +1,36 @@
 // Componente: ReservationForm.js
 // Formulario para crear/editar reservas
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReservationService from "../models/ReservationService";
 import "../styles/ChineseStyle.css";
+
+const getBestFitTables = (tables, people) => {
+  const guests = Number(people) || 1;
+  const sorted = tables
+    .filter((table) => Number(table.capacity || 0) >= guests)
+    .sort((a, b) => {
+      const capacityDiff = Number(a.capacity || 0) - Number(b.capacity || 0);
+      if (capacityDiff !== 0) return capacityDiff;
+      return Number(a.tableNumber || a.number || 0) - Number(b.tableNumber || b.number || 0);
+    });
+
+  const maxReasonableCapacity = Math.max(guests + 3, Math.ceil(guests * 1.5));
+  const bestFits = sorted.filter(
+    (table) => Number(table.capacity || 0) <= maxReasonableCapacity
+  );
+
+  if (bestFits.length >= 3 || bestFits.length === sorted.length) {
+    return bestFits;
+  }
+
+  const bestFitIds = new Set(bestFits.map((table) => table.id));
+  const fallbackFits = sorted
+    .filter((table) => !bestFitIds.has(table.id))
+    .slice(0, 3 - bestFits.length);
+
+  return [...bestFits, ...fallbackFits];
+};
 
 const ReservationForm = ({ userId, userName, userEmail, onReservationCreated }) => {
   const [formData, setFormData] = useState({
@@ -18,15 +45,7 @@ const ReservationForm = ({ userId, userName, userEmail, onReservationCreated }) 
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  // Obtener mesas disponibles cuando cambia fecha/hora
-  useEffect(() => {
-    if (formData.reservationDate && formData.reservationTime) {
-      loadAvailableTables();
-    }
-  }, [formData.reservationDate, formData.reservationTime]);
-
-  // Cargar mesas disponibles
-  const loadAvailableTables = async () => {
+  const loadAvailableTables = useCallback(async () => {
     try {
       const result = await ReservationService.getAvailableTables(
         formData.reservationDate,
@@ -34,19 +53,25 @@ const ReservationForm = ({ userId, userName, userEmail, onReservationCreated }) 
       );
 
       if (result.success) {
-        // Filtrar por capacidad
-        const filtered = result.tables.filter(
-          (table) => table.capacity >= formData.numberOfPeople
-        );
+        const filtered = getBestFitTables(result.tables, formData.numberOfPeople);
         setAvailableTables(filtered);
         if (filtered.length > 0) {
           setSelectedTable(filtered[0].id);
+        } else {
+          setSelectedTable(null);
         }
       }
     } catch (err) {
       console.error("Error cargando mesas:", err);
     }
-  };
+  }, [formData.reservationDate, formData.reservationTime, formData.numberOfPeople]);
+
+  // Obtener mesas disponibles cuando cambia fecha/hora
+  useEffect(() => {
+    if (formData.reservationDate && formData.reservationTime) {
+      loadAvailableTables();
+    }
+  }, [formData.reservationDate, formData.reservationTime, loadAvailableTables]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -208,19 +233,34 @@ const ReservationForm = ({ userId, userName, userEmail, onReservationCreated }) 
           {/* Mesas disponibles */}
           {availableTables.length > 0 && (
             <div className="form-group">
-              <label htmlFor="selectedTable">Mesa disponible</label>
-              <select
-                id="selectedTable"
-                value={selectedTable || ""}
-                onChange={(e) => setSelectedTable(e.target.value)}
-                required
-              >
+              <label>Mesas disponibles recomendadas</label>
+              <div className="reservation-table-grid">
                 {availableTables.map((table) => (
-                  <option key={table.id} value={table.id}>
-                    Mesa {table.tableNumber} - Capacidad: {table.capacity} personas
-                  </option>
+                  <button
+                    key={table.id}
+                    type="button"
+                    className={`reservation-table-card ${
+                      selectedTable === table.id ? "selected" : ""
+                    }`}
+                    onClick={() => setSelectedTable(table.id)}
+                  >
+                    <span className="reservation-table-title">
+                      Mesa {table.tableNumber || table.number}
+                    </span>
+                    <span className="reservation-table-capacity">
+                      {table.capacity} personas
+                    </span>
+                    {availableTables[0]?.id === table.id && (
+                      <span className="reservation-table-badge">
+                        Mejor ajuste
+                      </span>
+                    )}
+                  </button>
                 ))}
-              </select>
+              </div>
+              <small className="form-hint">
+                Se muestran primero las mesas que mejor encajan con tu grupo.
+              </small>
             </div>
           )}
 

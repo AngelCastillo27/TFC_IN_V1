@@ -83,6 +83,8 @@ const AdminRoute = ({ children, isAuthenticated, loading, role }) => {
 function App() {
   const { user, userName, userEmail, role, loading, logout } = useAuth();
   const isAuthenticated = !!user;
+  const needsGooglePasswordSetup =
+    sessionStorage.getItem("googlePasswordSetupPending") === "true";
 
   return (
     <Router>
@@ -102,7 +104,20 @@ function App() {
         <Route
           path="/login"
           element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+            isAuthenticated ? (
+              needsGooglePasswordSetup ? (
+                <Navigate
+                  to={`/forgot-password?email=${encodeURIComponent(
+                    user.email,
+                  )}&setup=google`}
+                  replace
+                />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            ) : (
+              <Login />
+            )
           }
         />
         <Route
@@ -117,13 +132,7 @@ function App() {
         />
         <Route
           path="/forgot-password"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <ForgotPassword />
-            )
-          }
+          element={<ForgotPassword />}
         />
 
         {/* ── Confirmación de reserva (publica) ──────────────────────────── */}

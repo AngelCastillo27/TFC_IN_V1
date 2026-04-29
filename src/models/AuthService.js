@@ -18,11 +18,6 @@ import {
   setDoc,
   serverTimestamp,
   deleteField,
-  deleteDoc,
-  collection,
-  query,
-  where,
-  getDocs,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 
@@ -271,7 +266,7 @@ class AuthService {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: email,
-            token: token,
+            token: token.toUpperCase(),
           }),
         },
       );
@@ -307,40 +302,7 @@ class AuthService {
     try {
       console.log("🔐 Validando token para:", email);
 
-      // Obtener documento de reset
-      const resetDoc = await getDoc(doc(db, "passwordResets", email));
-
-      if (!resetDoc.exists()) {
-        return {
-          success: false,
-          error: "No hay solicitud de reset activa para este email",
-        };
-      }
-
-      const resetData = resetDoc.data();
-
-      // Validar token
-      if (resetData.token !== token.toUpperCase()) {
-        return { success: false, error: "El token es incorrecto" };
-      }
-
-      // Validar que no haya expirado
-      if (new Date() > new Date(resetData.expiresAt.toDate())) {
-        await deleteDoc(doc(db, "passwordResets", email));
-        return { success: false, error: "El token ha expirado" };
-      }
-
-      // Obtener usuario por email
-      const userQuerySnapshot = await getDocs(
-        query(collection(db, "users"), where("email", "==", email)),
-      );
-
-      if (userQuerySnapshot.empty) {
-        return { success: false, error: "Usuario no encontrado" };
-      }
-
-      // Usar Firebase Admin SDK en el backend para cambiar la contraseña
-      // Por ahora, guardamos una solicitud de cambio que será procesada por un Cloud Function
+      // La Cloud Function valida el token y cambia la contraseña con Admin SDK.
       const response = await fetch(
         "https://us-central1-digitalizacion-tsinge-fusion.cloudfunctions.net/resetPasswordWithToken",
         {
@@ -349,7 +311,7 @@ class AuthService {
           body: JSON.stringify({
             email: email,
             newPassword: newPassword,
-            token: token,
+            token: token.toUpperCase(),
           }),
         },
       );

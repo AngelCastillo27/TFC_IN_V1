@@ -1,5 +1,5 @@
 // Componente: Sidebar.js
-// Sidebar desplegable/plegable para comensal y admin
+// Sidebar desplegable/plegable para comensal y admin.
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -9,19 +9,23 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(true);
 
-  const menuOptions = role === "admin" 
-    ? [
-        { id: "inicio", label: "Panel Principal", icon: "🏠" },
-        { id: "admin-menu", label: "Gestionar Menú", icon: "🍜" },
-        { id: "admin-mesas", label: "Gestionar Mesas", icon: "🪑" },
-        { id: "admin-ofertas", label: "Ofertas", icon: "🏷️" },
-        { id: "admin-reservas", label: "Todas las Reservas", icon: "📋" },
-      ]
-    : [
-        { id: "inicio", label: "Inicio", icon: "🏠" },
-        { id: "reservas", label: "Mis Reservas", icon: "📅" },
-        { id: "nueva-reserva", label: "Nueva Reserva", icon: "➕" },
-      ];
+  const menuOptions =
+    role === "admin"
+      ? [
+          { id: "inicio", label: "Panel Principal", icon: "Inicio" },
+          { id: "preview-inicio", label: "Ver Inicio", icon: "Vista" },
+          { id: "preview-menu", label: "Ver Menu", icon: "Menu" },
+          { id: "admin-menu", label: "Gestionar Menu", icon: "Menu" },
+          { id: "admin-mesas", label: "Gestionar Mesas", icon: "Mesas" },
+          { id: "admin-ofertas", label: "Ofertas", icon: "Oferta" },
+          { id: "admin-reservas", label: "Todas las Reservas", icon: "Lista" },
+          { id: "admin-crear-reserva", label: "Crear Reserva", icon: "Crear" },
+        ]
+      : [
+          { id: "inicio", label: "Inicio", icon: "Inicio" },
+          { id: "reservas", label: "Mis Reservas", icon: "Lista" },
+          { id: "nueva-reserva", label: "Nueva Reserva", icon: "Crear" },
+        ];
 
   const handleLogout = async () => {
     await onLogout();
@@ -30,16 +34,14 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
 
   return (
     <>
-      {/* Botón para abrir/cerrar sidebar en móvil */}
       <button
         className="sidebar-toggle"
         onClick={() => setIsOpen(!isOpen)}
-        title={isOpen ? "Ocultar menú" : "Mostrar menú"}
+        title={isOpen ? "Ocultar menu" : "Mostrar menu"}
       >
-        ☰
+        =
       </button>
 
-      {/* Sidebar */}
       <aside
         className={`sidebar ${isOpen ? "open" : "closed"}`}
         style={{
@@ -53,7 +55,6 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
           overflow: "hidden",
         }}
       >
-        {/* Header del Sidebar */}
         {isOpen && (
           <>
             <div style={{ padding: "0 20px 20px", borderBottom: "1px solid #333" }}>
@@ -75,7 +76,7 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
                   fontSize: "14px",
                 }}
               >
-                {role === "admin" ? "👨‍💼 Administrador" : "👤 Comensal"}
+                {role === "admin" ? "Administrador" : "Comensal"}
               </div>
               {userName && (
                 <div
@@ -91,7 +92,6 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
               )}
             </div>
 
-            {/* Opciones del Menú */}
             <nav style={{ flex: 1, padding: "16px 0" }}>
               <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
                 {menuOptions.map((option) => {
@@ -125,7 +125,9 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
                           if (!isActive) e.currentTarget.style.background = "transparent";
                         }}
                       >
-                        <span style={{ fontSize: "18px" }}>{option.icon}</span>
+                        <span style={{ fontSize: "11px", minWidth: "38px" }}>
+                          {option.icon}
+                        </span>
                         {option.label}
                       </button>
                     </li>
@@ -134,7 +136,6 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
               </ul>
             </nav>
 
-            {/* Botón de Logout */}
             <div style={{ padding: "0 16px" }}>
               <button
                 onClick={handleLogout}
@@ -159,14 +160,13 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
                   e.currentTarget.style.color = "#DC143C";
                 }}
               >
-                Cerrar Sesión
+                Cerrar Sesion
               </button>
             </div>
           </>
         )}
       </aside>
 
-      {/* Overlay cuando sidebar está abierto en móvil */}
       {isOpen && (
         <div
           className="sidebar-overlay"

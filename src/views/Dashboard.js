@@ -13,6 +13,8 @@ import ReservationsView from "./ReservationsView";
 import AdminMenu from "./AdminMenu";
 import AdminTables from "./AdminTables";
 import AdminOffers from "./AdminOffers";
+import Home from "./Home";
+import Menu from "./Menu";
 import "../styles/ChineseStyle.css";
 
 // Pantalla de bienvenida segun rol
@@ -102,6 +104,12 @@ const renderContent = (selectedOption, role, userId, userName, userEmail) => {
     case "inicio":
       return <WelcomePanel role={role} userName={userName} />;
 
+    case "preview-inicio":
+      return <Home />;
+
+    case "preview-menu":
+      return <Menu />;
+
     // Comensal
     case "reservas":
       return (
@@ -110,6 +118,7 @@ const renderContent = (selectedOption, role, userId, userName, userEmail) => {
           userId={userId}
           userEmail={userEmail}
           userName={userName}
+          showCreateForm={false}
         />
       );
 
@@ -139,6 +148,7 @@ const renderContent = (selectedOption, role, userId, userName, userEmail) => {
           userId={userId}
           userEmail={userEmail}
           userName={userName}
+          showCreateForm={false}
         />
       );
     case "admin-crear-reserva":
@@ -169,8 +179,10 @@ const ICONS = {
   "admin-reservas": "📋",
 };
 
+void ICONS;
+
 const Dashboard = ({ role, userId, userName, userEmail, logout }) => {
-  const { selectedOption, availableOptions, selectOption } = useDashboard(role);
+  const { selectedOption, selectOption } = useDashboard(role);
 
   return (
     <div style={{ display: "flex", minHeight: "calc(100vh - 63px)" }}>

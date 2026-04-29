@@ -7,11 +7,16 @@ import useReservations from "../controllers/useReservations";
 import useTables from "../controllers/useTables";
 import "../styles/ChineseStyle.css";
 
-const ReservationsView = ({ role, userId, userEmail, userName }) => {
+const ReservationsView = ({
+  role,
+  userId,
+  userEmail,
+  userName,
+  showCreateForm = role === "admin",
+}) => {
   const {
     reservations,
     loading,
-    error,
     createReservation,
     updateReservation,
     deleteReservation,
@@ -177,7 +182,7 @@ const ReservationsView = ({ role, userId, userEmail, userName }) => {
       </h2>
 
       {/* Formulario de creación/edición */}
-      {(role === "admin" || role === "comensal") && (
+      {showCreateForm && (
         <form
           onSubmit={handleSubmit}
           style={{

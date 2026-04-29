@@ -7,6 +7,8 @@ import { useState } from "react";
 // Definicion de todas las opciones del sidebar con los roles que pueden verlas
 const ALL_OPTIONS = [
   { id: "inicio",         label: "Inicio",           roles: ["admin", "comensal"] },
+  { id: "preview-inicio", label: "Ver Inicio",       roles: ["admin"] },
+  { id: "preview-menu",   label: "Ver Menu",         roles: ["admin"] },
   { id: "reservas",       label: "Mis Reservas",      roles: ["comensal"] },
   { id: "nueva-reserva",  label: "Nueva Reserva",     roles: ["comensal"] },
   { id: "admin-menu",     label: "Gestion de Menu",   roles: ["admin"] },

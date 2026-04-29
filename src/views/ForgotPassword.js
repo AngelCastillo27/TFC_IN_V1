@@ -1,31 +1,55 @@
 // Vista: ForgotPassword.js
-// Componente para recuperación de contraseña con token
-// Paso 1: Solicitar token al email
-// Paso 2: Ingresar token y nueva contraseña
+// Recuperacion de contrasena con token.
+// Tambien se usa para obligar a usuarios Google a crear contrasena local.
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AuthService from "../models/AuthService";
 import "../styles/ChineseStyle.css";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [searchParams] = useSearchParams();
+  const initialEmail = searchParams.get("email") || "";
+  const isGoogleSetup = searchParams.get("setup") === "google";
+
+  const [email, setEmail] = useState(initialEmail);
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  const [step, setStep] = useState(1); // 1: Pedir email, 2: Pedir token y contraseña
+  const [step, setStep] = useState(isGoogleSetup ? 2 : 1);
 
-  // Validar email
   const validateEmail = (emailValue) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(emailValue);
   };
 
-  // Paso 1: Solicitar token
+  const requestToken = async (emailValue) => {
+    setLoading(true);
+
+    try {
+      await AuthService.requestPasswordReset(emailValue);
+      setStep(2);
+      setError("Token enviado. Revisa tu email y crea tu contrasena.");
+    } catch (err) {
+      setStep(2);
+      setError("Token enviado. Revisa tu email y crea tu contrasena.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isGoogleSetup) return;
+
+    const currentUser = AuthService.getCurrentUser();
+    if (currentUser?.email) {
+      setEmail(currentUser.email);
+    }
+  }, [isGoogleSetup]);
+
   const handleRequestToken = async (e) => {
     e.preventDefault();
     setError(null);
@@ -36,115 +60,102 @@ const ForgotPassword = () => {
     }
 
     if (!validateEmail(email)) {
-      setError("Por favor ingresa un email válido");
+      setError("Por favor ingresa un email valido");
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const result = await AuthService.requestPasswordReset(email);
-      setLoading(false);
-
-      // Siempre avanzar al paso 2 para que el usuario pueda ingresar el token
-      // (el token se envió correctamente aunque el servidor respondió con error)
-      setStep(2);
-      setSuccess(true);
-    } catch (err) {
-      setLoading(false);
-      // También avanzar al paso 2 para que pueda intentar con el token
-      setStep(2);
-      setSuccess(true);
-    }
+    await requestToken(email);
   };
 
-  // Paso 2: Validar token y resetear contraseña
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setError(null);
 
-    if (!token.trim()) {
+    if (!isGoogleSetup && !token.trim()) {
       setError("Ingresa el token recibido en tu email");
       return;
     }
 
-    if (token.length !== 3) {
+    if (!isGoogleSetup && token.length !== 3) {
       setError("El token debe tener exactamente 3 caracteres");
       return;
     }
 
     if (!newPassword) {
-      setError("Ingresa una nueva contraseña");
+      setError("Ingresa una nueva contrasena");
       return;
     }
 
     if (newPassword.length < 4) {
-      setError("La contraseña debe tener al menos 4 caracteres");
+      setError("La contrasena debe tener al menos 4 caracteres");
       return;
     }
 
     if (!confirmPassword) {
-      setError("Confirma tu nueva contraseña");
+      setError("Confirma tu nueva contrasena");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Las contraseñas no coinciden");
+      setError("Las contrasenas no coinciden");
       return;
     }
 
     setLoading(true);
 
     try {
-      const result = await AuthService.resetPasswordWithToken(
-        email,
-        token,
-        newPassword,
-      );
-      setLoading(false);
+      const result = isGoogleSetup
+        ? await AuthService.addPasswordToGoogleUser(newPassword)
+        : await AuthService.resetPasswordWithToken(email, token, newPassword);
 
       if (result.success) {
-        setSuccess(true);
-        setError("✅ Contraseña actualizada exitosamente");
+        sessionStorage.removeItem("googlePasswordSetupPending");
+        setError("Contrasena actualizada exitosamente");
 
         setTimeout(() => {
-          navigate("/login");
+          navigate(isGoogleSetup ? "/dashboard" : "/login");
         }, 2000);
       } else {
-        setError(result.error || "Error al resetear la contraseña");
+        setError(result.error || "Error al resetear la contrasena");
       }
     } catch (err) {
-      setLoading(false);
       setError(err.message || "Error inesperado");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Volver al paso anterior
   const handleBackToStep1 = () => {
     setStep(1);
     setToken("");
     setNewPassword("");
     setConfirmPassword("");
     setError(null);
-    setSuccess(false);
   };
+
+  const isSuccessMessage =
+    error &&
+    (error.includes("Token enviado") ||
+      error.includes("actualizada exitosamente"));
 
   return (
     <div className="forgot-password-container">
       <div className="forgot-password-card">
         <div className="forgot-password-header">
-          <h1>🔐 Recuperar Contraseña</h1>
+          <h1>{isGoogleSetup ? "Crear Contrasena" : "Recuperar Contrasena"}</h1>
           <p className="forgot-password-subtitle">
-            {step === 1
+            {isGoogleSetup
+              ? "Crea una contrasena para poder acceder tambien con email"
+              : step === 1
               ? "Ingresa tu email para recibir un token"
-              : "Ingresa el token y tu nueva contraseña"}
+              : "Ingresa el token y tu nueva contrasena"}
           </p>
         </div>
 
         {error && (
           <div
             className={
-              error.includes("✅")
+              isSuccessMessage
                 ? "success-message success-box"
                 : "error-message error-box"
             }
@@ -153,7 +164,6 @@ const ForgotPassword = () => {
           </div>
         )}
 
-        {/* PASO 1: Solicitar Token */}
         {step === 1 && (
           <form onSubmit={handleRequestToken} className="forgot-password-form">
             <div className="form-group">
@@ -178,31 +188,44 @@ const ForgotPassword = () => {
           </form>
         )}
 
-        {/* PASO 2: Ingresar Token y Nueva Contraseña */}
         {step === 2 && (
           <form onSubmit={handleResetPassword} className="forgot-password-form">
             <div className="form-group">
-              <label htmlFor="token">Token (3 caracteres)</label>
+              <label htmlFor="emailReadonly">Email</label>
               <input
-                id="token"
-                type="text"
-                placeholder="Ej: ABC"
-                value={token}
-                onChange={(e) => setToken(e.target.value.toUpperCase())}
-                maxLength="3"
+                id="emailReadonly"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isGoogleSetup}
                 required
               />
-              <small className="form-hint">
-                Verifica tu email y copia el token recibido
-              </small>
             </div>
 
+            {!isGoogleSetup && (
+              <div className="form-group">
+                <label htmlFor="token">Token (3 caracteres)</label>
+                <input
+                  id="token"
+                  type="text"
+                  placeholder="Ej: ABC"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value.toUpperCase())}
+                  maxLength="3"
+                  required
+                />
+                <small className="form-hint">
+                  Verifica tu email y copia el token recibido
+                </small>
+              </div>
+            )}
+
             <div className="form-group">
-              <label htmlFor="newPassword">Nueva Contraseña</label>
+              <label htmlFor="newPassword">Nueva Contrasena</label>
               <input
                 id="newPassword"
                 type="password"
-                placeholder="Mínimo 4 caracteres"
+                placeholder="Minimo 4 caracteres"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -210,11 +233,11 @@ const ForgotPassword = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirmar Contraseña</label>
+              <label htmlFor="confirmPassword">Confirmar Contrasena</label>
               <input
                 id="confirmPassword"
                 type="password"
-                placeholder="Repite tu contraseña"
+                placeholder="Repite tu contrasena"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -226,23 +249,24 @@ const ForgotPassword = () => {
               disabled={loading}
               className="btn-primary btn-full-width"
             >
-              {loading ? "Actualizando..." : "Actualizar Contraseña"}
+              {loading ? "Actualizando..." : "Actualizar Contrasena"}
             </button>
 
-            <button
-              type="button"
-              onClick={handleBackToStep1}
-              className="btn-secondary btn-full-width"
-            >
-              Volver
-            </button>
+            {!isGoogleSetup && (
+              <button
+                type="button"
+                onClick={handleBackToStep1}
+                className="btn-secondary btn-full-width"
+              >
+                Volver
+              </button>
+            )}
           </form>
         )}
 
-        {/* Link al login */}
         <div className="forgot-password-links">
           <a href="/login" className="link-button">
-            ← Volver al Login
+            Volver al Login
           </a>
         </div>
       </div>
