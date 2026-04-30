@@ -4,7 +4,8 @@
 // Admin: gestiona menu, mesas, ofertas y reservas.
 // Comensal: gestiona sus reservas.
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ReservationForm from "../components/ReservationForm";
 import AdminReservationForm from "../components/AdminReservationForm";
@@ -183,6 +184,22 @@ void ICONS;
 
 const Dashboard = ({ role, userId, userName, userEmail, logout }) => {
   const { selectedOption, selectOption } = useDashboard(role);
+  const navigate = useNavigate();
+
+  // Proteger acceso si el usuario tiene cambio de contrasena pendiente (Google)
+  useEffect(() => {
+    const hasPasswordPending = sessionStorage.getItem(
+      "googlePasswordSetupPending",
+    );
+    if (hasPasswordPending) {
+      // Obtener el email del usuario actual
+      const email = userEmail || "";
+      navigate(
+        `/forgot-password?email=${encodeURIComponent(email)}&setup=google`,
+        { replace: true },
+      );
+    }
+  }, [navigate, userEmail]);
 
   return (
     <div style={{ display: "flex", minHeight: "calc(100vh - 63px)" }}>

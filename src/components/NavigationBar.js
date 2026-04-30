@@ -102,88 +102,101 @@ const NavigationBar = ({ isAuthenticated, user, role, logout }) => {
       >
         {isAuthenticated ? (
           // Usuario logueado: menu desplegable
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
+          // Ocultar menu si el usuario tiene cambio de contrasena pendiente (Google)
+          sessionStorage.getItem("googlePasswordSetupPending") ? (
+            <span
               style={{
-                backgroundColor: "#DC143C",
-                color: "white",
-                border: "none",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
+                color: "#DC143C",
                 fontSize: "14px",
                 fontWeight: "bold",
-                maxWidth: "200px",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
               }}
             >
-              {user?.email?.split("@")[0] || "Usuario"}
-            </button>
-
-            {showUserMenu && (
-              <div
+              Configuracion requerida
+            </span>
+          ) : (
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
                 style={{
-                  position: "absolute",
-                  top: "calc(100% + 6px)",
-                  right: 0,
-                  background: "#2a2a2a",
-                  border: "1px solid #DC143C",
-                  borderRadius: "6px",
-                  minWidth: "180px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
-                  zIndex: 300,
+                  backgroundColor: "#DC143C",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  maxWidth: "200px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
-                <Link
-                  to="/dashboard"
-                  onClick={() => setShowUserMenu(false)}
-                  style={{
-                    display: "block",
-                    padding: "12px 16px",
-                    color: "#E8E8E8",
-                    textDecoration: "none",
-                    borderBottom: "1px solid #444",
-                    fontSize: "14px",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#3a3a3a")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
-                >
-                  Mi Panel
-                </Link>
+                {user?.email?.split("@")[0] || "Usuario"}
+              </button>
 
-                <button
-                  onClick={handleLogout}
+              {showUserMenu && (
+                <div
                   style={{
-                    display: "block",
-                    width: "100%",
-                    padding: "12px 16px",
-                    color: "#DC143C",
-                    background: "transparent",
-                    border: "none",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "bold",
+                    position: "absolute",
+                    top: "calc(100% + 6px)",
+                    right: 0,
+                    background: "#2a2a2a",
+                    border: "1px solid #DC143C",
+                    borderRadius: "6px",
+                    minWidth: "180px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                    zIndex: 300,
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#3a3a3a")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
                 >
-                  Cerrar sesion
-                </button>
-              </div>
-            )}
-          </div>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setShowUserMenu(false)}
+                    style={{
+                      display: "block",
+                      padding: "12px 16px",
+                      color: "#E8E8E8",
+                      textDecoration: "none",
+                      borderBottom: "1px solid #444",
+                      fontSize: "14px",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "#3a3a3a")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    Mi Panel
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "12px 16px",
+                      color: "#DC143C",
+                      background: "transparent",
+                      border: "none",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "bold",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "#3a3a3a")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    Cerrar sesion
+                  </button>
+                </div>
+              )}
+            </div>
+          )
         ) : (
           // No logueado: botones de acceso
           <>
