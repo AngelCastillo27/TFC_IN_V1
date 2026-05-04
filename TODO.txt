@@ -7,7 +7,7 @@ Al ingresar a NUEVO PLATO:
 
 En la sección Alérgenos debe mostrarse:
 ✅ La lista completa de alérgenos existentes (solo nombres).
-✅ La opción de crear un nuevo alérgeno, con el mismo comportamiento que Categoría del Plato.
+✅ La opción de crear un nuevo alérgeno, con el mismo comportamiento que Categoría del Plato, se pueden seleccionar varios.
 Al crear un nuevo alérgeno:
 ✅ Se debe generar automáticamente su ID en la base de datos.
 ✅ El nuevo alérgeno debe quedar disponible para selección inmediata.
@@ -27,7 +27,7 @@ Esta vista debe:
 JUAN:
 ###################################################
 
-3: Vista COMENSAL – “INICIO” (Dashboard)
+3: Vista COMENSAL –(Dashboard--> podemos cambiarlo a "MI PERFIL")
 Información del Comensal
 🔹 Campos obligatorios
 
@@ -70,4 +70,6 @@ Anularse automáticamente.
 
 
 #####
-npm install @tailwindcss/postcss
+INICIO A LA APP:
+-->CONSOLA : npm start
+ --->"install libs" (probable)
