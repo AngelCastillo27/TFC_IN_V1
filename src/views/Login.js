@@ -1,11 +1,11 @@
 // Vista: Login.js
 // Componente SOLO para login con email y Google
-// El registro esta completamente en Register.js
+// Diseño responsivo y minimalista
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import AuthService from "../models/AuthService";
-import "../styles/ChineseStyle.css";
+import "../styles/MinimalStyle.css";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ const Login = () => {
       setEmail("");
       setPassword("");
     } else {
-      setError(result.error || "Error al iniciar sesion");
+      setError(result.error || "Error al iniciar sesión");
     }
   };
 
@@ -41,7 +41,6 @@ const Login = () => {
       if (result.success) {
         console.log("Google SignIn exitoso", result);
 
-        // Solo redirigir a crear contraseña si es requerido
         if (result.requiresPassword) {
           sessionStorage.setItem("googlePasswordSetupPending", "true");
           navigate(
@@ -51,12 +50,11 @@ const Login = () => {
             { replace: true },
           );
         } else {
-          // Usuario ya configuró su contraseña, ir al dashboard
-          console.log("Usuario ya tiene contraseña configurada, ir al dashboard");
+          console.log("Usuario ya tiene contraseña configurada");
           navigate("/dashboard", { replace: true });
         }
       } else {
-        setError(result.error || "Error al iniciar sesion con Google");
+        setError(result.error || "Error al iniciar sesión con Google");
       }
     } catch (err) {
       setError(err.message);
@@ -66,24 +64,53 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>Iniciar Sesion</h1>
-          <p className="login-subtitle">
-            Accede a tu cuenta en Tsinghe Cocina Fusion
+    <div style={{
+      minHeight: "calc(100vh - 60px)",
+      backgroundColor: "#faf5ed",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+    }}>
+      <div style={{
+        width: "100%",
+        maxWidth: "420px",
+        backgroundColor: "white",
+        border: "1px solid #e0e0e0",
+        borderRadius: "4px",
+        padding: "clamp(20px, 5vw, 40px)",
+      }}>
+        {/* Header */}
+        <div style={{ marginBottom: "32px", textAlign: "center" }}>
+          <h1 style={{
+            fontSize: "28px",
+            color: "#568d6e",
+            marginBottom: "8px",
+          }}>
+            Iniciar Sesión
+          </h1>
+          <p style={{
+            fontSize: "14px",
+            color: "#666666",
+            margin: 0,
+          }}>
+            Accede a tu cuenta en Tsinghe
           </p>
         </div>
 
-        {error && <div className="error-message error-box">{error}</div>}
+        {/* Error Message */}
+        {error && (
+          <div className="error-message" style={{ marginBottom: "16px" }}>
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleLoginSubmit} className="login-form">
+        {/* Form */}
+        <form onSubmit={handleLoginSubmit} style={{ marginBottom: "24px" }}>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label>Email</label>
             <input
-              id="email"
               type="email"
-              name="email"
               placeholder="tu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -92,12 +119,10 @@ const Login = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Contrasena</label>
+            <label>Contraseña</label>
             <input
-              id="password"
               type="password"
-              name="password"
-              placeholder="Tu contrasena"
+              placeholder="Tu contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -107,31 +132,68 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary btn-login-submit"
+            className="btn btn-primary"
+            style={{ width: "100%" }}
           >
-            {loading ? "Iniciando..." : "Iniciar Sesion"}
+            {loading ? "Iniciando..." : "Iniciar Sesión"}
           </button>
         </form>
 
-        <div className="form-divider">O</div>
+        {/* Divider */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          margin: "24px 0",
+        }}>
+          <div style={{ flex: 1, height: "1px", backgroundColor: "#e0e0e0" }}></div>
+          <span style={{ fontSize: "12px", color: "#999999" }}>o</span>
+          <div style={{ flex: 1, height: "1px", backgroundColor: "#e0e0e0" }}></div>
+        </div>
 
+        {/* Google Button */}
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="btn-google btn-full-width"
-          title="Inicia sesion con tu cuenta Google"
+          className="btn btn-secondary"
+          style={{ width: "100%", marginBottom: "24px" }}
         >
           Continuar con Google
         </button>
 
-        <div className="login-links">
-          <a href="/forgot-password" className="link-button">
-            Olvidaste tu contrasena?
-          </a>
-          <span className="link-separator">-</span>
-          <a href="/register" className="link-button">
-            No tienes cuenta? Registrate
-          </a>
+        {/* Links */}
+        <div style={{
+          textAlign: "center",
+          fontSize: "13px",
+          color: "#666666",
+        }}>
+          <Link
+            to="/forgot-password"
+            style={{
+              color: "#6db888",
+              textDecoration: "none",
+              fontWeight: "600",
+              display: "block",
+              marginBottom: "8px",
+            }}
+            onMouseEnter={(e) => (e.target.style.color = "#568d6e")}
+            onMouseLeave={(e) => (e.target.style.color = "#6db888")}
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+          <span>¿No tienes cuenta? </span>
+          <Link
+            to="/register"
+            style={{
+              color: "#2e8b57",
+              textDecoration: "none",
+              fontWeight: "600",
+            }}
+            onMouseEnter={(e) => (e.target.style.color = "#1f6338")}
+            onMouseLeave={(e) => (e.target.style.color = "#2e8b57")}
+          >
+            Regístrate aquí
+          </Link>
         </div>
       </div>
     </div>

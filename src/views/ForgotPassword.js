@@ -1,11 +1,11 @@
 // Vista: ForgotPassword.js
-// Recuperacion de contrasena con token.
-// Tambien se usa para obligar a usuarios Google a crear contrasena local.
+// Recuperación de contraseña con token
+// También se usa para usuarios Google que crean contraseña local
 
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import AuthService from "../models/AuthService";
-import "../styles/ChineseStyle.css";
+import "../styles/MinimalStyle.css";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [step, setStep] = useState(isGoogleSetup ? 2 : 1);
+  const [message, setMessage] = useState("");
 
   const validateEmail = (emailValue) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -28,14 +29,13 @@ const ForgotPassword = () => {
 
   const requestToken = async (emailValue) => {
     setLoading(true);
-
     try {
       await AuthService.requestPasswordReset(emailValue);
       setStep(2);
-      setError("Token enviado. Revisa tu email y crea tu contrasena.");
+      setMessage("Token enviado a tu email");
     } catch (err) {
       setStep(2);
-      setError("Token enviado. Revisa tu email y crea tu contrasena.");
+      setMessage("Token enviado a tu email");
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,6 @@ const ForgotPassword = () => {
 
   useEffect(() => {
     if (!isGoogleSetup) return;
-
     const currentUser = AuthService.getCurrentUser();
     if (currentUser?.email) {
       setEmail(currentUser.email);
@@ -60,7 +59,7 @@ const ForgotPassword = () => {
     }
 
     if (!validateEmail(email)) {
-      setError("Por favor ingresa un email valido");
+      setError("Por favor ingresa un email válido");
       return;
     }
 
@@ -82,22 +81,22 @@ const ForgotPassword = () => {
     }
 
     if (!newPassword) {
-      setError("Ingresa una nueva contrasena");
+      setError("Ingresa una nueva contraseña");
       return;
     }
 
     if (newPassword.length < 4) {
-      setError("La contrasena debe tener al menos 4 caracteres");
+      setError("La contraseña debe tener al menos 4 caracteres");
       return;
     }
 
     if (!confirmPassword) {
-      setError("Confirma tu nueva contrasena");
+      setError("Confirma tu nueva contraseña");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Las contrasenas no coinciden");
+      setError("Las contraseñas no coinciden");
       return;
     }
 
@@ -110,13 +109,12 @@ const ForgotPassword = () => {
 
       if (result.success) {
         sessionStorage.removeItem("googlePasswordSetupPending");
-        setError("Contrasena actualizada exitosamente");
-
+        setMessage("Contraseña actualizada exitosamente");
         setTimeout(() => {
           navigate(isGoogleSetup ? "/dashboard" : "/login");
         }, 2000);
       } else {
-        setError(result.error || "Error al resetear la contrasena");
+        setError(result.error || "Error al resetear la contraseña");
       }
     } catch (err) {
       setError(err.message || "Error inesperado");
@@ -125,51 +123,61 @@ const ForgotPassword = () => {
     }
   };
 
-  const handleBackToStep1 = () => {
-    setStep(1);
-    setToken("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setError(null);
-  };
-
-  const isSuccessMessage =
-    error &&
-    (error.includes("Token enviado") ||
-      error.includes("actualizada exitosamente"));
-
   return (
-    <div className="forgot-password-container">
-      <div className="forgot-password-card">
-        <div className="forgot-password-header">
-          <h1>{isGoogleSetup ? "Crear Contrasena" : "Recuperar Contrasena"}</h1>
-          <p className="forgot-password-subtitle">
+    <div style={{
+      minHeight: "calc(100vh - 60px)",
+      backgroundColor: "#faf5ed",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+    }}>
+      <div style={{
+        width: "100%",
+        maxWidth: "480px",
+        backgroundColor: "white",
+        border: "1px solid #e0e0e0",
+        borderRadius: "4px",
+        padding: "clamp(20px, 5vw, 40px)",
+      }}>
+        <div style={{ marginBottom: "28px", textAlign: "center" }}>
+          <h1 style={{
+            fontSize: "28px",
+            color: "#568d6e",
+            marginBottom: "8px",
+          }}>
+            {isGoogleSetup ? "Crear Contraseña" : "Recuperar Contraseña"}
+          </h1>
+          <p style={{
+            fontSize: "13px",
+            color: "#666666",
+            margin: 0,
+          }}>
             {isGoogleSetup
-              ? "Crea una contrasena para poder acceder tambien con email"
+              ? "Crea una contraseña para tu cuenta"
               : step === 1
               ? "Ingresa tu email para recibir un token"
-              : "Ingresa el token y tu nueva contrasena"}
+              : "Ingresa el token y tu nueva contraseña"}
           </p>
         </div>
 
+        {message && (
+          <div className="success-message" style={{ marginBottom: "16px" }}>
+            ✓ {message}
+          </div>
+        )}
+
         {error && (
-          <div
-            className={
-              isSuccessMessage
-                ? "success-message success-box"
-                : "error-message error-box"
-            }
-          >
+          <div className="error-message" style={{ marginBottom: "16px" }}>
             {error}
           </div>
         )}
 
         {step === 1 && (
-          <form onSubmit={handleRequestToken} className="forgot-password-form">
+          <form onSubmit={handleRequestToken} style={{ marginBottom: "20px" }}>
             <div className="form-group">
-              <label htmlFor="email">Email</label>
+              <label>Email</label>
               <input
-                id="email"
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
@@ -181,7 +189,8 @@ const ForgotPassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary btn-full-width"
+              className="btn btn-primary"
+              style={{ width: "100%" }}
             >
               {loading ? "Enviando..." : "Enviar Token"}
             </button>
@@ -189,11 +198,10 @@ const ForgotPassword = () => {
         )}
 
         {step === 2 && (
-          <form onSubmit={handleResetPassword} className="forgot-password-form">
+          <form onSubmit={handleResetPassword} style={{ marginBottom: "20px" }}>
             <div className="form-group">
-              <label htmlFor="emailReadonly">Email</label>
+              <label>Email</label>
               <input
-                id="emailReadonly"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -204,9 +212,8 @@ const ForgotPassword = () => {
 
             {!isGoogleSetup && (
               <div className="form-group">
-                <label htmlFor="token">Token (3 caracteres)</label>
+                <label>Token (3 caracteres)</label>
                 <input
-                  id="token"
                   type="text"
                   placeholder="Ej: ABC"
                   value={token}
@@ -214,18 +221,22 @@ const ForgotPassword = () => {
                   maxLength="3"
                   required
                 />
-                <small className="form-hint">
-                  Verifica tu email y copia el token recibido
+                <small style={{
+                  fontSize: "12px",
+                  color: "#999999",
+                  display: "block",
+                  marginTop: "4px",
+                }}>
+                  Verifica tu email y copia el token
                 </small>
               </div>
             )}
 
             <div className="form-group">
-              <label htmlFor="newPassword">Nueva Contrasena</label>
+              <label>Nueva Contraseña</label>
               <input
-                id="newPassword"
                 type="password"
-                placeholder="Minimo 4 caracteres"
+                placeholder="Mínimo 4 caracteres"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -233,11 +244,10 @@ const ForgotPassword = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirmar Contrasena</label>
+              <label>Confirmar Contraseña</label>
               <input
-                id="confirmPassword"
                 type="password"
-                placeholder="Repite tu contrasena"
+                placeholder="Repite tu contraseña"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -247,30 +257,60 @@ const ForgotPassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary btn-full-width"
+              className="btn btn-primary"
+              style={{ width: "100%" }}
             >
-              {loading ? "Actualizando..." : "Actualizar Contrasena"}
+              {loading ? "Actualizando..." : "Actualizar Contraseña"}
             </button>
-
-            {!isGoogleSetup && (
-              <button
-                type="button"
-                onClick={handleBackToStep1}
-                className="btn-secondary btn-full-width"
-              >
-                Volver
-              </button>
-            )}
           </form>
         )}
 
-        {!isGoogleSetup && (
-          <div className="forgot-password-links">
-            <a href="/login" className="link-button">
-              Volver al Login
-            </a>
-          </div>
-        )}
+        <div style={{
+          textAlign: "center",
+          fontSize: "13px",
+          color: "#666666",
+        }}>
+          {step === 1 ? (
+            <>
+              ¿Recuerdas tu contraseña?{" "}
+              <Link
+                to="/login"
+                style={{
+                  color: "#2e8b57",
+                  textDecoration: "none",
+                  fontWeight: "600",
+                }}
+              >
+                Inicia sesión
+              </Link>
+            </>
+          ) : (
+            <>
+              ¿Necesitas un nuevo token?{" "}
+              <button
+                onClick={() => {
+                  setStep(1);
+                  setToken("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setError(null);
+                  setMessage("");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#2e8b57",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                  fontSize: "inherit",
+                }}
+              >
+                Volver
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

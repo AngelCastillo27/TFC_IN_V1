@@ -30,23 +30,35 @@ import AdminMenu from "./views/AdminMenu";
 import AdminTables from "./views/AdminTables";
 import AdminOffers from "./views/AdminOffers";
 
-import "./styles/ChineseStyle.css";
+import "./styles/MinimalStyle.css";
+
+// Componente de carga responsivo
+const LoadingScreen = () => (
+  <div style={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: "60vh",
+    padding: "20px",
+  }}>
+    <div style={{
+      textAlign: "center",
+    }}>
+      <div style={{
+        fontSize: "16px",
+        color: "#568d6e",
+        fontWeight: "600",
+      }}>
+        Cargando...
+      </div>
+    </div>
+  </div>
+);
 
 // ── Ruta protegida: requiere login ──────────────────────────────────────────
 const ProtectedRoute = ({ children, isAuthenticated, loading }) => {
   if (loading) {
-    return (
-      <div
-        style={{
-          padding: "40px",
-          textAlign: "center",
-          color: "#DC143C",
-          fontSize: "18px",
-        }}
-      >
-        Cargando...
-      </div>
-    );
+    return <LoadingScreen />;
   }
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -57,18 +69,7 @@ const ProtectedRoute = ({ children, isAuthenticated, loading }) => {
 // ── Ruta protegida: requiere rol admin ──────────────────────────────────────
 const AdminRoute = ({ children, isAuthenticated, loading, role }) => {
   if (loading) {
-    return (
-      <div
-        style={{
-          padding: "40px",
-          textAlign: "center",
-          color: "#DC143C",
-          fontSize: "18px",
-        }}
-      >
-        Cargando...
-      </div>
-    );
+    return <LoadingScreen />;
   }
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
