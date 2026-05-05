@@ -13,6 +13,7 @@ import {
   where,
   Timestamp,
   serverTimestamp,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
@@ -137,6 +138,30 @@ class ReservationService {
     }
   }
 
+  // Escuchar cambios en tiempo real de reservas del usuario
+  subscribeToUserReservations(userId, callback) {
+    try {
+      const unsubscribe = onSnapshot(
+        query(collection(db, "reservations"), where("userId", "==", userId)),
+        (querySnapshot) => {
+          const reservations = [];
+          querySnapshot.forEach((doc) => {
+            reservations.push({ id: doc.id, ...doc.data() });
+          });
+          callback({ success: true, reservations });
+        },
+        (error) => {
+          console.error("Error en listener de reservas del usuario:", error);
+          callback({ success: false, error: error.message });
+        }
+      );
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error subscripto a reservas del usuario:", error);
+      return () => {};
+    }
+  }
+
   // Alias: getReservationsByUser (para compatibilidad con el controlador)
   async getReservationsByUser(userId) {
     return this.getUserReservations(userId);
@@ -155,6 +180,30 @@ class ReservationService {
     } catch (error) {
       console.error("Error obteniendo reservas:", error);
       return { success: false, error: error.message };
+    }
+  }
+
+  // Escuchar cambios en tiempo real de todas las reservas
+  subscribeToAllReservations(callback) {
+    try {
+      const unsubscribe = onSnapshot(
+        collection(db, "reservations"),
+        (querySnapshot) => {
+          const reservations = [];
+          querySnapshot.forEach((doc) => {
+            reservations.push({ id: doc.id, ...doc.data() });
+          });
+          callback({ success: true, reservations });
+        },
+        (error) => {
+          console.error("Error en listener de reservas:", error);
+          callback({ success: false, error: error.message });
+        }
+      );
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error subscripto a reservas:", error);
+      return () => {};
     }
   }
 

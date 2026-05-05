@@ -52,9 +52,9 @@ const ReservationsView = ({
       const reserved = reservations
         .filter(
           (r) =>
-            r.date === formData.date &&
-            r.time === formData.time &&
-            r.status === "activa",
+            r.reservationDate === formData.date &&
+            r.reservationTime === formData.time &&
+            r.status !== "cancelada",
         )
         .map((r) => r.tableId);
 
@@ -130,9 +130,9 @@ const ReservationsView = ({
 
   const handleEdit = (reservation) => {
     setFormData({
-      date: reservation.date,
-      time: reservation.time,
-      numPeople: reservation.numPeople,
+      date: reservation.reservationDate,
+      time: reservation.reservationTime,
+      numPeople: reservation.numberOfPeople,
       tableId: reservation.tableId,
     });
     setEditingId(reservation.id);
@@ -148,6 +148,21 @@ const ReservationsView = ({
       }
     }
   };
+  const updateStatus = async (id, status) => {
+  const result = await updateReservation(id, { status });
+  if (result.success) {
+    setSuccessMessage("Estado actualizado correctamente");
+    setTimeout(() => setSuccessMessage(""), 3000);
+  }
+  return result;
+};
+
+const confirmReservation = (id) =>
+  updateStatus(id, "confirmada");
+
+const completeReservation = (id) =>
+  updateStatus(id, "completada");
+
 
   const getTableInfo = (tableId) => {
     return tables.find((t) => t.id === tableId);
@@ -437,7 +452,7 @@ const ReservationsView = ({
           <div style={{ display: "grid", gap: "15px" }}>
             {reservations.map((reservation) => {
               const tableInfo = getTableInfo(reservation.tableId);
-              const reservationDate = new Date(reservation.date);
+              const reservationDate = new Date(reservation.reservationDate + "T00:00:00");
               const isUpcoming = reservationDate >= new Date();
               const canEdit =
                 isUpcoming &&
@@ -469,7 +484,8 @@ const ReservationsView = ({
                       }}
                     >
                       📅 <strong>Fecha:</strong>{" "}
-                      {new Date(reservation.date).toLocaleDateString("es-ES")}
+                      {new Date(reservation.reservationDate + "T00:00:00").toLocaleDateString("es-ES")}
+                      
                     </p>
                     <p
                       style={{
@@ -478,7 +494,7 @@ const ReservationsView = ({
                         color: "#666",
                       }}
                     >
-                      🕐 <strong>Hora:</strong> {reservation.time}
+                      🕐 <strong>Hora:</strong> {reservation.reservationTime}
                     </p>
                     <p
                       style={{
@@ -487,7 +503,7 @@ const ReservationsView = ({
                         color: "#666",
                       }}
                     >
-                      👥 <strong>Personas:</strong> {reservation.numPeople}
+                      👥 <strong>Personas:</strong> {reservation.numberOfPeople}
                     </p>
                     <p
                       style={{
@@ -510,9 +526,11 @@ const ReservationsView = ({
                         fontWeight: "bold",
                       }}
                     >
-                      {reservation.status === "activa"
-                        ? "✅ Activa"
-                        : "❌ Cancelada"}
+                      {reservation.status === "cancelada"
+                          ? "❌ Cancelada"
+                          : reservation.status === "pendiente"
+                          ? "⏳ Pendiente"
+                          : "✅ Confirmada"}
                     </p>
                   </div>
 
@@ -534,6 +552,23 @@ const ReservationsView = ({
                         }}
                       >
                         ✏️ Editar
+                      </button>
+                    )}
+                    {reservation.status === "pendiente" && role === "admin" && (
+                      <button
+                        onClick={() => confirmReservation(reservation.id)}
+                        style={{
+                          background: "#28a745",
+                          color: "white",
+                          border: "none",
+                          padding: "8px 12px",
+                          borderRadius: "5px",
+                          cursor: "pointer",
+                          fontWeight: "bold",
+                          fontSize: "12px",
+                        }}
+                      >
+                        ✅ Confirmar
                       </button>
                     )}
                     {canDelete && (

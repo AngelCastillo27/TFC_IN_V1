@@ -1,5 +1,5 @@
 // Modelo: TableService.js
-// Servicio para gestionar mesas en Firestore.
+// Servicio para gestionar mesas en Firestore con actualizaciones en tiempo real.
 // Incluye CRUD básico para mesas.
 
 import {
@@ -10,6 +10,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
@@ -92,6 +93,30 @@ class TableService {
     } catch (error) {
       console.error("Error eliminando mesa:", error);
       return { success: false, error: error.message };
+    }
+  }
+
+  // Escuchar cambios en tiempo real de todas las mesas
+  subscribeToAllTables(callback) {
+    try {
+      const unsubscribe = onSnapshot(
+        collection(db, "tables"),
+        (querySnapshot) => {
+          const tables = [];
+          querySnapshot.forEach((doc) => {
+            tables.push({ id: doc.id, ...doc.data() });
+          });
+          callback({ success: true, tables });
+        },
+        (error) => {
+          console.error("Error en listener de mesas:", error);
+          callback({ success: false, error: error.message });
+        }
+      );
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error subscripto a mesas:", error);
+      return () => {};
     }
   }
 }

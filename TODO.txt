@@ -73,3 +73,7 @@ Anularse automáticamente.
 INICIO A LA APP:
 -->CONSOLA : npm start
  --->"install libs" (probable)
+
+
+guiarse de reservationsView.js para aplicar al resto.
+CRUD EN "todas las reservas" solo para vista de admin

@@ -20,8 +20,19 @@
       "collectionGroup": "reservations",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "date",      "order": "ASCENDING" },
-        { "fieldPath": "status",    "order": "ASCENDING" }
+        { "fieldPath": "tableId", "order": "ASCENDING" },
+        { "fieldPath": "reservationDate", "order": "ASCENDING" },
+        { "fieldPath": "reservationTime", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reservations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reservationDate", "order": "ASCENDING" },
+        { "fieldPath": "reservationTime", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
       ]
     },
     {

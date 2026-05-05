@@ -26,13 +26,13 @@ service cloud.firestore {
 
     // ════════════════════════════════════════════════════════════════════
     // USERS
-    // Crear: solo el propio usuario al registrarse
+    // Crear: solo el propio usuario al registrarse o un admin
     // Leer:  el propio usuario o un admin
     // Editar: el propio usuario o un admin
     // Borrar: solo admin
     // ════════════════════════════════════════════════════════════════════
     match /users/{uid} {
-      allow create: if isOwner(uid);
+      allow create: if isOwner(uid) || isAdmin();
       allow read:   if isOwner(uid) || isAdmin();
       allow update: if isOwner(uid) || isAdmin();
       allow delete: if isAdmin();
@@ -77,7 +77,7 @@ service cloud.firestore {
     // ════════════════════════════════════════════════════════════════════
     // RESERVATIONS
     // Leer: el propietario de la reserva o un admin
-    // Crear: cualquier usuario logueado (solo con su propio userId)
+    // Crear: cualquier usuario logueado o admin
     // Editar: el propietario o admin
     // Borrar: el propietario o admin
     // ════════════════════════════════════════════════════════════════════
@@ -86,7 +86,7 @@ service cloud.firestore {
                        (resource.data.userId == request.auth.uid || isAdmin());
 
       allow create: if isLoggedIn() &&
-                       request.resource.data.userId == request.auth.uid;
+                       (request.resource.data.userId == request.auth.uid || isAdmin());
 
       allow update: if isLoggedIn() &&
                        (resource.data.userId == request.auth.uid || isAdmin());

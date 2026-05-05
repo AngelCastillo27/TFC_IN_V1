@@ -3,18 +3,18 @@
  * Funciones del servidor para el restaurante.
  *
  * FUNCIONES:
- * 1. onUserCreated      - Trigger: al registrar usuario, crea su doc en Firestore
- * 2. sendWelcomeEmail   - HTTP: enviar email de bienvenida (llamado desde el cliente)
+ * 1. sendWelcomeEmail   - HTTP: enviar email de bienvenida 
+ * 2. sendVerificationEmail - HTTP: crear usuario y enviar email de verificación
  * 3. onReservationWrite - Trigger: cuando se crea/cancela una reserva, actualiza la mesa
  * 4. initTables         - HTTP: inicializa las 20 mesas en Firestore (llamar UNA sola vez)
  *
  * DEPLOY: firebase deploy --only functions
  */
 
+const functions = require("firebase-functions");
 const { setGlobalOptions } = require("firebase-functions");
 const { onRequest } = require("firebase-functions/https");
 const {
-  onDocumentCreated,
   onDocumentWritten,
 } = require("firebase-functions/firestore");
 const logger = require("firebase-functions/logger");
@@ -26,30 +26,9 @@ const db = admin.firestore();
 setGlobalOptions({ maxInstances: 10, region: "us-central1" });
 
 // ════════════════════════════════════════════════════════════════════════════
-// 1. TRIGGER: nuevo usuario en Auth → crear documento en Firestore
-//    Garantiza que SIEMPRE exista el documento aunque el cliente falle.
+// NOTA: El trigger onUserCreated de Auth se maneja mejor desde Firestore
+// Se crean usuarios directamente en Firestore desde el cliente al registrarse
 // ════════════════════════════════════════════════════════════════════════════
-exports.onUserCreated = onDocumentCreated("users/{uid}", async (event) => {
-  const uid = event.params.uid;
-  const data = event.data?.data();
-
-  if (!data) {
-    logger.warn("onUserCreated: documento vacio para uid", uid);
-    return;
-  }
-
-  logger.info("Nuevo usuario registrado:", {
-    uid,
-    email: data.email,
-    role: data.role,
-  });
-
-  // Si el documento no tiene rol, forzar "comensal" como fallback
-  if (!data.role) {
-    await db.collection("users").doc(uid).update({ role: "comensal" });
-    logger.info("Rol asignado por defecto: comensal a", uid);
-  }
-});
 
 // ════════════════════════════════════════════════════════════════════════════
 // 2. HTTP: enviar email de bienvenida con Gmail/Nodemailer
@@ -169,10 +148,7 @@ exports.sendWelcomeEmail = onRequest(
 );
 
 // ════════════════════════════════════════════════════════════════════════════
-// 3. TRIGGER: cuando se escribe una reserva → actualizar campo
-//    "reservationCount" en el documento de la mesa correspondiente.
-//    Esto permite saber en tiempo real cuantas reservas tiene cada mesa.
-// ════════════════════════════════════════════════════════════════════════════
+// 3. TRIGGER: cuando se escribe una reserva → actualizar campo reservationCount
 exports.onReservationWrite = onDocumentWritten(
   "reservations/{reservationId}",
   async (event) => {
@@ -411,73 +387,7 @@ exports.sendVerificationEmail = onRequest(
     }
   },
 );
-
-// ════════════════════════════════════════════════════════════════════════════
-// 6. HTTP: enviar email con token para reset de contraseña
-// ════════════════════════════════════════════════════════════════════════════
-exports.sendPasswordResetEmail = onRequest(
-  {
-    region: "us-central1",
-    cors: "*",
-    invoker: "public",
-  },
-  async (req, res) => {
-    res.set("Access-Control-Allow-Origin", "*");
-    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.set("Access-Control-Allow-Headers", "Content-Type");
-
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
-
-    if (req.method !== "POST") {
-      res.status(405).json({ error: "Metodo no permitido" });
-      return;
-    }
-
-    try {
-      const { email, token } = req.body;
-
-      if (!email || !token) {
-        res.status(400).json({ error: "Email y token son obligatorios" });
-        return;
-      }
-
-      // Enviar email con el token
-      const info = await transporter.sendMail({
-        from: '"Tsinghe Cocina Fusión" <tsinghecocinafusion@gmail.com>',
-        to: email,
-        subject: "Recuperar tu contraseña - Tsinghe Cocina Fusión 🔐",
-        html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; background-color: #f5f5dc; margin: 0; padding: 20px; }
-            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; }
-            .header { background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%); padding: 30px; text-align: center; }
-            .header h1 { color: white; margin: 0; font-size: 28px; }
-            .content { padding: 30px; }
-            .content h2 { color: #dc143c; margin-top: 0; }
-            .content p { color: #333; line-height: 1.6; }
-            .token-box { background: #f0f0f0; border: 2px solid #dc143c; padding: 15px; text-align: center; border-radius: 5px; margin: 20px 0; }
-            .token-box .label { font-size: 12px; color: #666; text-transform: uppercase; }
-            .token-box .token { font-size: 32px; font-weight: bold; color: #dc143c; letter-spacing: 5px; }
-            .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; color: #856404; font-size: 12px; }
-            .footer { background: #1a1a1a; padding: 20px; text-align: center; color: #888; font-size: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🔐 Recuperar Contraseña</h1>
-            </div>
-            <div class="content">
-              <h2>Hemos recibido tu solicitud de recuperación</h2>
-              <p>Para recuperar tu contraseña, usa el siguiente token en nuestro sitio web:</p>
-              
+  /*            
               <div class="token-box">
                 <div class="label">Tu Token:</div>
                 <div class="token">${token}</div>
@@ -525,7 +435,7 @@ exports.sendPasswordResetEmail = onRequest(
       });
     }
   },
-);
+);*/
 
 // ════════════════════════════════════════════════════════════════════════════
 // 6. HTTP: validar token y resetear contraseña

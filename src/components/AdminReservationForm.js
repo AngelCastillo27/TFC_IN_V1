@@ -138,36 +138,38 @@ const AdminReservationForm = ({ onReservationCreated }) => {
     setLoading(true);
 
     try {
-      // Crear usuario en Firestore
-      const userData = {
-        name: newUserData.name.trim(),
-        email: newUserData.email.trim(),
-        phone: newUserData.phone.trim() || "",
-        role: "comensal",
-        status: "verificado", // El admin lo crea directamente, se marca como verificado
-        createdAt: new Date(),
-        emailVerified: true, // El admin crea el usuario, se considera verificado
-      };
+      // Llamar a la función para crear usuario en Auth y enviar email
+      const response = await fetch(
+        "https://us-central1-digitalizacion-tsinge-fusion.cloudfunctions.net/sendVerificationEmail",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: newUserData.email.trim(),
+            name: newUserData.name.trim(),
+          }),
+        },
+      );
 
-      const result = await UserService.createUser(userData);
+      const result = await response.json();
 
       if (result.success) {
-        // Enviar email de verificación
-        await sendVerificationEmail(newUserData.email, newUserData.name);
+        // Esperar un poco para que el trigger cree el documento en Firestore
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Crear objeto del nuevo usuario para seleccionarlo
-        const newUser = {
-          id: result.id,
-          ...userData,
-        };
-
-        // Agregar a la lista de usuarios
-        setUsers((prev) => [...prev, newUser]);
-        setSelectedUser(newUser);
-        setFormData((prev) => ({
-          ...prev,
-          userEmail: newUser.email,
-        }));
+        // Buscar el usuario creado
+        const updatedUsers = await UserService.getAllUsers();
+        if (updatedUsers.success) {
+          setUsers(updatedUsers.users);
+          const newUser = updatedUsers.users.find(u => u.email === newUserData.email.trim());
+          if (newUser) {
+            setSelectedUser(newUser);
+            setFormData((prev) => ({
+              ...prev,
+              userEmail: newUser.email,
+            }));
+          }
+        }
 
         setNewUserData({ name: "", email: "", phone: "" });
         setShowNewUserForm(false);
@@ -252,9 +254,7 @@ const AdminReservationForm = ({ onReservationCreated }) => {
         reservationTime: formData.reservationTime,
         numberOfPeople: formData.numberOfPeople,
         specialRequests: formData.specialRequests,
-        status: selectedUser.emailVerified
-          ? "confirmada"
-          : "pendiente_confirmacion",
+        status: "confirmada", // Reservas creadas por admin se confirman automáticamente
       };
 
       const result =
