@@ -7,7 +7,8 @@ Al ingresar a NUEVO PLATO:
 
 En la sección Alérgenos debe mostrarse:
 ✅ La lista completa de alérgenos existentes (solo nombres).
-✅ La opción de crear un nuevo alérgeno, con el mismo comportamiento que Categoría del Plato, se pueden seleccionar varios.
+✅ La opción de crear un nuevo alérgeno, con el mismo comportamiento
+ que Categoría del Plato, se pueden seleccionar varios.
 Al crear un nuevo alérgeno:
 ✅ Se debe generar automáticamente su ID en la base de datos.
 ✅ El nuevo alérgeno debe quedar disponible para selección inmediata.
