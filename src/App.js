@@ -1,7 +1,3 @@
-// App.js
-// Componente principal con React Router.
-// Rutas publicas, protegidas por login y protegidas por rol admin.
-
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -13,7 +9,7 @@ import {
 import useAuth from "./controllers/useAuth";
 import NavigationBar from "./components/NavigationBar";
 
-// Vistas publicas
+// Vistas públicas
 import Home from "./views/Home";
 import Menu from "./views/Menu";
 import Login from "./views/Login";
@@ -32,60 +28,48 @@ import AdminOffers from "./views/AdminOffers";
 
 import "./styles/MinimalStyle.css";
 
-// Componente de carga responsivo
+// ── Pantalla de Carga ────────────────────────────────────────────────────────
 const LoadingScreen = () => (
-  <div style={{
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "60vh",
-    padding: "20px",
-  }}>
-    <div style={{
-      textAlign: "center",
-    }}>
-      <div style={{
-        fontSize: "16px",
-        color: "#568d6e",
-        fontWeight: "600",
-      }}>
-        Cargando...
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "60vh",
+    }}
+  >
+    <div style={{ textAlign: "center" }}>
+      <div style={{ fontSize: "16px", color: "#568d6e", fontWeight: "600" }}>
+        Cargando autenticación...
       </div>
     </div>
   </div>
 );
 
-// ── Ruta protegida: requiere login ──────────────────────────────────────────
+// ── Componentes de Ruta Protegida ───────────────────────────────────────────
 const ProtectedRoute = ({ children, isAuthenticated, loading }) => {
-  if (loading) {
-    return <LoadingScreen />;
-  }
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
+  if (loading) return <LoadingScreen />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
-// ── Ruta protegida: requiere rol admin ──────────────────────────────────────
 const AdminRoute = ({ children, isAuthenticated, loading, role }) => {
-  if (loading) {
-    return <LoadingScreen />;
-  }
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  if (role !== "admin") {
-    return <Navigate to="/dashboard" replace />;
-  }
-  return children;
+  if (loading) return <LoadingScreen />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return role === "admin" ? children : <Navigate to="/dashboard" replace />;
 };
 
-// ── App principal ───────────────────────────────────────────────────────────
+// ── App Principal ───────────────────────────────────────────────────────────
 function App() {
   const { user, userName, userEmail, role, loading, logout } = useAuth();
+
   const isAuthenticated = !!user;
   const needsGooglePasswordSetup =
     sessionStorage.getItem("googlePasswordSetupPending") === "true";
+
+  // IMPORTANTE: El chequeo de loading debe ir AQUÍ dentro
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <Router>
@@ -97,20 +81,20 @@ function App() {
       />
 
       <Routes>
-        {/* ── Rutas publicas ─────────────────────────────────────────────── */}
+        {/* Rutas públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/menu" element={<Menu />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/confirm-reservation" element={<ConfirmReservation />} />
 
-        {/* ── Autenticacion (redirige si ya esta logueado) ────────────────── */}
+        {/* Lógica de Login mejorada */}
         <Route
           path="/login"
           element={
             isAuthenticated ? (
               needsGooglePasswordSetup ? (
                 <Navigate
-                  to={`/forgot-password?email=${encodeURIComponent(
-                    user.email,
-                  )}&setup=google`}
+                  to={`/forgot-password?email=${encodeURIComponent(user.email)}&setup=google`}
                   replace
                 />
               ) : (
@@ -121,6 +105,7 @@ function App() {
             )
           }
         />
+
         <Route
           path="/register"
           element={
@@ -131,15 +116,8 @@ function App() {
             )
           }
         />
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
 
-        {/* ── Confirmación de reserva (publica) ──────────────────────────── */}
-        <Route path="/confirm-reservation" element={<ConfirmReservation />} />
-
-        {/* ── Rutas de usuario autenticado ────────────────────────────────── */}
+        {/* Rutas protegidas (Usuario) */}
         <Route
           path="/dashboard"
           element={
@@ -168,7 +146,7 @@ function App() {
           }
         />
 
-        {/* ── Rutas solo admin ────────────────────────────────────────────── */}
+        {/* Rutas protegidas (Admin) */}
         <Route
           path="/admin/menu"
           element={
@@ -181,6 +159,7 @@ function App() {
             </AdminRoute>
           }
         />
+
         <Route
           path="/admin/tables"
           element={
@@ -189,10 +168,11 @@ function App() {
               loading={loading}
               role={role}
             >
-              <AdminTables />
+              <AdminTables userId={user?.uid} />
             </AdminRoute>
           }
         />
+
         <Route
           path="/admin/offers"
           element={
@@ -206,7 +186,7 @@ function App() {
           }
         />
 
-        {/* ── Fallback ─────────────────────────────────────────────────────── */}
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

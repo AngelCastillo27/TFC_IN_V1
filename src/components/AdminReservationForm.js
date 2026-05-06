@@ -155,13 +155,15 @@ const AdminReservationForm = ({ onReservationCreated }) => {
 
       if (result.success) {
         // Esperar un poco para que el trigger cree el documento en Firestore
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         // Buscar el usuario creado
         const updatedUsers = await UserService.getAllUsers();
         if (updatedUsers.success) {
           setUsers(updatedUsers.users);
-          const newUser = updatedUsers.users.find(u => u.email === newUserData.email.trim());
+          const newUser = updatedUsers.users.find(
+            (u) => u.email === newUserData.email.trim(),
+          );
           if (newUser) {
             setSelectedUser(newUser);
             setFormData((prev) => ({
@@ -542,26 +544,6 @@ const AdminReservationForm = ({ onReservationCreated }) => {
             />
           </div>
 
-          {/* Mesas disponibles */}
-          {availableTables.length > 0 && (
-            <div className="form-group">
-              <label htmlFor="selectedTable">Mesa disponible</label>
-              <select
-                id="selectedTable"
-                value={selectedTable || ""}
-                onChange={(e) => setSelectedTable(e.target.value)}
-                required
-              >
-                {availableTables.map((table) => (
-                  <option key={table.id} value={table.id}>
-                    Mesa {table.tableNumber} - Capacidad: {table.capacity}{" "}
-                    personas
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           {/* Solicitudes especiales */}
           <div className="form-group">
             <label htmlFor="specialRequests">
@@ -600,3 +582,24 @@ const AdminReservationForm = ({ onReservationCreated }) => {
 };
 
 export default AdminReservationForm;
+
+/*
+{/* Mesas disponibles }
+          /*{availableTables.length > 0 && (
+            <div className="form-group">
+              <label htmlFor="selectedTable">Mesa disponible</label>
+              <select
+                id="selectedTable"
+                value={selectedTable || ""}
+                onChange={(e) => setSelectedTable(e.target.value)}
+                required
+              >
+                {availableTables.map((table) => (
+                  <option key={table.id} value={table.id}>
+                    Mesa {table.tableNumber} - Capacidad: {table.capacity}{" "}
+                    personas
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}*/
