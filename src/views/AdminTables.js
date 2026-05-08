@@ -17,7 +17,7 @@ const AdminTables = ({ userId, userRole }) => {
   const [newPin, setNewPin] = useState("");
   const [pinError, setPinError] = useState(null);
   const [pinSuccess, setPinSuccess] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(userRole === "admin"); // Iniciar como true si es admin
   const [loading, setLoading] = useState(false);
 
   // 0. INICIALIZAR MESAS (primera carga)
@@ -56,7 +56,7 @@ const AdminTables = ({ userId, userRole }) => {
   useEffect(() => {
     if (!userId) return;
 
-    // Verificar role desde prop primero (más rápido)
+    // La ruta AdminRoute ya verificó que es admin, así que confiamos en userRole
     if (userRole === "admin") {
       setIsAdmin(true);
     }
@@ -65,7 +65,11 @@ const AdminTables = ({ userId, userRole }) => {
     const unsubscribe = onSnapshot(doc(db, "users", userId), (doc) => {
       if (doc.exists()) {
         const userData = doc.data();
-        setIsAdmin(userData.role === "admin");
+        // Asegurar que si viene de la ruta protegida AdminRoute, es admin
+        const isAdminFromDb = userData.role === "admin";
+        if (isAdminFromDb) {
+          setIsAdmin(true);
+        }
         const pin = String(userData.adminPin || "1234").trim();
         setDbPin(pin);
       }
