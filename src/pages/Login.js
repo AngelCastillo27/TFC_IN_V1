@@ -4,8 +4,9 @@
 
 import React, { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import AuthService from "../services/AuthService";
-import "../styles/MinimalStyle.css";
+import { Button, Input } from "../components";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -67,139 +68,115 @@ const Login = () => {
   };
 
   return (
-    <div style={{
-      minHeight: "calc(100vh - 60px)",
-      backgroundColor: "#faf5ed",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "20px",
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "420px",
-        backgroundColor: "white",
-        border: "1px solid #e0e0e0",
-        borderRadius: "4px",
-        padding: "clamp(20px, 5vw, 40px)",
-      }}>
+    <motion.div
+      className="min-h-screen bg-pearl flex items-center justify-center px-4 py-8"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="w-full max-w-md bg-white border border-gold rounded-xs p-8 shadow-soft">
         {/* Header */}
-        <div style={{ marginBottom: "32px", textAlign: "center" }}>
-          <h1 style={{
-            fontSize: "28px",
-            color: "#568d6e",
-            marginBottom: "8px",
-          }}>
+        <motion.div
+          className="mb-8 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+        >
+          <h1 className="font-serif text-3xl font-bold text-dark mb-2">
             Iniciar Sesión
           </h1>
-          <p style={{
-            fontSize: "14px",
-            color: "#666666",
-            margin: 0,
-          }}>
+          <p className="text-sm text-stone-gray">
             Accede a tu cuenta en Tsinghe
           </p>
-        </div>
+        </motion.div>
 
         {/* Error Message */}
         {error && (
-          <div className="error-message" style={{ marginBottom: "16px" }}>
-            {error}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 rounded-xs"
+          >
+            <p className="text-xs font-semibold text-red-700">{error}</p>
+          </motion.div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleLoginSubmit} style={{ marginBottom: "24px" }}>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              placeholder="tu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+        <form onSubmit={handleLoginSubmit} className="mb-6 space-y-4">
+          <Input
+            label="Email"
+            type="email"
+            placeholder="tu@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-          <div className="form-group">
-            <label>Contraseña</label>
-            <input
-              type="password"
-              placeholder="Tu contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          <Input
+            label="Contraseña"
+            type="password"
+            placeholder="Tu contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="btn btn-primary"
-            style={{ width: "100%" }}
+            variant="primary"
+            className="w-full mt-2"
           >
             {loading ? "Iniciando..." : "Iniciar Sesión"}
-          </button>
+          </Button>
         </form>
 
         {/* Divider */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          margin: "24px 0",
-        }}>
-          <div style={{ flex: 1, height: "1px", backgroundColor: "#e0e0e0" }}></div>
-          <span style={{ fontSize: "12px", color: "#999999" }}>o</span>
-          <div style={{ flex: 1, height: "1px", backgroundColor: "#e0e0e0" }}></div>
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-gold"></div>
+          <span className="text-xs text-stone-gray">o</span>
+          <div className="flex-1 h-px bg-gold"></div>
         </div>
 
         {/* Google Button */}
-        <button
+        <Button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="btn btn-secondary"
-          style={{ width: "100%", marginBottom: "24px" }}
+          variant="secondary"
+          className="w-full mb-6"
         >
           Continuar con Google
-        </button>
+        </Button>
 
         {/* Links */}
-        <div style={{
-          textAlign: "center",
-          fontSize: "13px",
-          color: "#666666",
-        }}>
-          <Link
-            to="/forgot-password"
-            style={{
-              color: "#6db888",
-              textDecoration: "none",
-              fontWeight: "600",
-              display: "block",
-              marginBottom: "8px",
-            }}
-            onMouseEnter={(e) => (e.target.style.color = "#568d6e")}
-            onMouseLeave={(e) => (e.target.style.color = "#6db888")}
-          >
-            ¿Olvidaste tu contraseña?
-          </Link>
-          <span>¿No tienes cuenta? </span>
-          <Link
-            to="/register"
-            style={{
-              color: "#2e8b57",
-              textDecoration: "none",
-              fontWeight: "600",
-            }}
-            onMouseEnter={(e) => (e.target.style.color = "#1f6338")}
-            onMouseLeave={(e) => (e.target.style.color = "#2e8b57")}
-          >
-            Regístrate aquí
-          </Link>
-        </div>
+        <motion.div
+          className="text-center text-xs text-stone-gray space-y-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+        >
+          <motion.div whileHover={{ scale: 1.02 }}>
+            <Link
+              to="/forgot-password"
+              className="text-gold hover:text-gold-light font-semibold block transition-colors duration-200"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </motion.div>
+          <p>
+            ¿No tienes cuenta?{" "}
+            <motion.span whileHover={{ scale: 1.02 }}>
+              <Link
+                to="/register"
+                className="text-gold hover:text-gold-light font-semibold transition-colors duration-200"
+              >
+                Regístrate aquí
+              </Link>
+            </motion.span>
+          </p>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
