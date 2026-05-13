@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "../hooks/useAuth";
 import UserService from "../services/UserService";
 import ReservationTableService, {
@@ -6,6 +7,7 @@ import ReservationTableService, {
   RESERVATION_TIMES,
   RESERVATION_STATUS,
 } from "../services/ReservationTableService";
+import { Button, Input } from "../components";
 
 const today = new Date().toISOString().split("T")[0];
 const defaultFormState = {
@@ -340,140 +342,193 @@ const AdminReservationsView = () => {
   }, [selectedReservation]);
 
   return (
-    <div style={containerStyle}>
-      <header style={headerStyle}>
-        <div>
-          <h1 style={titleStyle}>Administración de reservas</h1>
-          <p style={subtitleStyle}>
-            Gestiona reservas, actualiza estados y asigna mesas desde una vista unificada.
-          </p>
-        </div>
-      </header>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-pearl px-4 py-8"
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Encabezado */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-serif font-bold text-dark mb-2">Administración de Reservas</h1>
+          <p className="text-stone-gray">Gestiona reservas, actualiza estados y asigna mesas desde una vista unificada.</p>
+        </motion.div>
 
-      <div style={gridStyle}>
-        <section style={panelStyle}>
-          <div style={panelHeaderStyle}>Filtros</div>
-          <div style={filtersGridStyle}>
-            <label style={fieldLabelStyle}>
-              Fecha
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                style={inputStyle}
-              />
-            </label>
-            <label style={fieldLabelStyle}>
-              Turno
-              <select
-                value={selectedShift}
-                onChange={(e) => setSelectedShift(e.target.value)}
-                style={inputStyle}
-              >
-                <option value={RESERVATION_SHIFTS.COMIDA}>Comida</option>
-                <option value={RESERVATION_SHIFTS.CENA}>Cena</option>
-              </select>
-            </label>
-            <label style={fieldLabelStyle}>
-              Estado
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                style={inputStyle}
-              >
-                <option value="">Todos</option>
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </section>
+        <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
+          {/* Panel 1: Filtros y Listado */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Filtros */}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white border-2 border-gold rounded-sm p-6 shadow-soft"
+            >
+              <div className="text-lg font-serif font-bold text-dark mb-4">Filtros</div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input
+                  label="Fecha"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                />
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-2">Turno</label>
+                  <select
+                    value={selectedShift}
+                    onChange={(e) => setSelectedShift(e.target.value)}
+                    className="w-full px-4 py-2.5 border-2 border-gold rounded-sm font-sans focus:outline-none focus:ring-2 focus:ring-gold"
+                  >
+                    <option value={RESERVATION_SHIFTS.COMIDA}>Comida</option>
+                    <option value={RESERVATION_SHIFTS.CENA}>Cena</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-2">Estado</label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full px-4 py-2.5 border-2 border-gold rounded-sm font-sans focus:outline-none focus:ring-2 focus:ring-gold"
+                  >
+                    <option value="">Todos</option>
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </motion.div>
 
-        <section style={panelStyle}>
-          <div style={panelHeaderStyle}>Listado de reservas</div>
-          {loadingReservations ? (
-            <div style={infoTextStyle}>Cargando reservas...</div>
-          ) : reservationError ? (
-            <div style={errorTextStyle}>{reservationError}</div>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={tableStyle}>
-                <thead>
-                  <tr>
-                    <th>Cliente</th>
-                    <th>Teléfono</th>
-                    <th>Fecha</th>
-                    <th>Hora</th>
-                    <th>Personas</th>
-                    <th>Estado</th>
-                    <th>Mesas</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reservations.map((reservation) => {
-                    const normalized = normalizeReservation(reservation);
-                    return (
-                      <tr key={reservation.id}>
-                        <td>{normalized.userName || "Cliente"}</td>
-                        <td>{normalized.userPhone || "--"}</td>
-                        <td>{normalized.date}</td>
-                        <td>{normalized.time}</td>
-                        <td>{normalized.peopleCount}</td>
-                        <td>
-                          <select
-                            value={normalized.status}
-                            onChange={(e) => handleReservationStatusChange(reservation.id, e.target.value)}
-                            style={statusSelectStyle}
-                          >
-                            {statusOptions.map((status) => (
-                              <option key={status} value={status}>
-                                {status}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td>{normalized.tableIds.length > 0 ? normalized.tableIds.join(", ") : "Sin mesas"}</td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => selectReservation(normalized)}
-                            style={actionButtonStyle}
-                          >
-                            Seleccionar
-                          </button>
-                        </td>
+            {/* Listado de Reservas */}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white border-2 border-gold rounded-sm p-6 shadow-soft"
+            >
+              <div className="text-lg font-serif font-bold text-dark mb-4">Listado de Reservas</div>
+              
+              {loadingReservations ? (
+                <motion.div
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="text-center text-stone-gray py-8"
+                >
+                  Cargando reservas...
+                </motion.div>
+              ) : reservationError ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="bg-red-50 text-red-700 p-4 rounded-sm"
+                >
+                  {reservationError}
+                </motion.div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-gold">
+                        <th className="text-left py-3 px-3 font-bold text-dark">Cliente</th>
+                        <th className="text-left py-3 px-3 font-bold text-dark">Teléfono</th>
+                        <th className="text-left py-3 px-3 font-bold text-dark">Fecha</th>
+                        <th className="text-left py-3 px-3 font-bold text-dark">Hora</th>
+                        <th className="text-left py-3 px-3 font-bold text-dark">Personas</th>
+                        <th className="text-left py-3 px-3 font-bold text-dark">Estado</th>
+                        <th className="text-left py-3 px-3 font-bold text-dark">Mesas</th>
+                        <th className="text-left py-3 px-3 font-bold text-dark">Acción</th>
                       </tr>
-                    );
-                  })}
-                  {reservations.length === 0 && (
-                    <tr>
-                      <td colSpan="8" style={emptyRowStyle}>
-                        No hay reservas para este filtro.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+                    </thead>
+                    <tbody>
+                      {reservations.map((reservation) => {
+                        const normalized = normalizeReservation(reservation);
+                        return (
+                          <motion.tr 
+                            key={reservation.id}
+                            whileHover={{ backgroundColor: "rgba(198, 167, 94, 0.05)" }}
+                            className="border-b border-gold hover:bg-pearl transition-colors"
+                          >
+                            <td className="py-3 px-3 text-dark">{normalized.userName || "Cliente"}</td>
+                            <td className="py-3 px-3 text-dark">{normalized.userPhone || "--"}</td>
+                            <td className="py-3 px-3 text-dark">{normalized.date}</td>
+                            <td className="py-3 px-3 text-dark">{normalized.time}</td>
+                            <td className="py-3 px-3 text-dark">{normalized.peopleCount}</td>
+                            <td className="py-3 px-3">
+                              <select
+                                value={normalized.status}
+                                onChange={(e) => handleReservationStatusChange(reservation.id, e.target.value)}
+                                className="px-2 py-1 border border-gold rounded-xs text-xs focus:outline-none focus:ring-2 focus:ring-gold"
+                              >
+                                {statusOptions.map((status) => (
+                                  <option key={status} value={status}>
+                                    {status}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="py-3 px-3 text-dark text-xs">{normalized.tableIds.length > 0 ? normalized.tableIds.join(", ") : "Sin mesas"}</td>
+                            <td className="py-3 px-3">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                type="button"
+                                onClick={() => selectReservation(normalized)}
+                                className="text-xs px-2 py-1 bg-gold text-dark rounded-xs font-medium hover:bg-gold-light transition-all"
+                              >
+                                Ver
+                              </motion.button>
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                      {reservations.length === 0 && (
+                        <tr>
+                          <td colSpan="8" className="text-center py-8 text-stone-gray">
+                            No hay reservas para este filtro
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </motion.div>
+          </div>
 
-        <section style={panelStyle}>
-          <div style={panelHeaderStyle}>{selectedReservation ? "Editar reserva" : "Crear nueva reserva"}</div>
-          {feedback && (
-            <div style={feedback.type === "success" ? successBoxStyle : errorBoxStyle}>
-              {feedback.message}
+          {/* Panel 2: Formulario */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white border-2 border-gold rounded-sm p-6 shadow-soft"
+          >
+            <div className="text-lg font-serif font-bold text-dark mb-4">
+              {selectedReservation ? "Editar Reserva" : "Nueva Reserva"}
             </div>
-          )}
 
-          <form onSubmit={handleSaveReservation} style={formStyle}>
-            <div style={fieldLabelStyle}>
-              Buscar cliente (teléfono, nombre o email)
-              <input
+            <AnimatePresence>
+              {feedback && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className={`mb-4 p-3 rounded-sm text-sm ${
+                    feedback.type === "success"
+                      ? "bg-green-50 text-green-700 border border-green-200"
+                      : "bg-red-50 text-red-700 border border-red-200"
+                  }`}
+                >
+                  {feedback.message}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <form onSubmit={handleSaveReservation} className="space-y-3">
+              <Input
+                label="Buscar cliente"
                 type="text"
                 value={searchPhone}
                 onChange={(e) => {
@@ -484,116 +539,104 @@ const AdminReservationsView = () => {
                     setManualPhone("");
                   }
                 }}
-                placeholder="Ej. +34 600 123 456 / Juan García / juan@email.com"
-                style={inputStyle}
+                placeholder="Teléfono/nombre/email"
               />
-            </div>
 
-            {searchPhone && (
-              <div style={searchResultsStyle}>
-                {filteredUsers.length > 0 ? (
-                  <>
-                    <div style={{ fontSize: 12, color: "#666", marginBottom: 6 }}>
-                      {filteredUsers.length} resultado{filteredUsers.length !== 1 ? "s" : ""} encontrado{filteredUsers.length !== 1 ? "s" : ""}
-                    </div>
-                    {filteredUsers.slice(0, 8).map((user) => (
-                      <button
-                        key={user.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setManualName(user.name || user.displayName || "");
-                          setManualPhone(user.phone || "");
-                          setSearchPhone("");
-                        }}
-                        style={searchResultButtonStyle}
-                      >
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                          <strong style={{ fontSize: 14, color: "#222" }}>{user.name || user.displayName || user.email}</strong>
-                          <div style={{ display: "flex", gap: 12, fontSize: 13, color: "#666" }}>
-                            <span>📱 {user.phone || "Sin teléfono"}</span>
-                            <span>✉️ {user.email}</span>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </>
-                ) : (
-                  <div style={emptyRowStyle}>
-                    <div>No se encontraron usuarios.</div>
-                    <div style={{ fontSize: 12, marginTop: 6, color: "#888" }}>Puedes crear la reserva manualmente con nombre y teléfono.</div>
-                  </div>
+              <AnimatePresence>
+                {searchPhone && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="border border-gold rounded-sm p-2 bg-pearl max-h-40 overflow-y-auto"
+                  >
+                    {filteredUsers.length > 0 ? (
+                      <div className="space-y-1">
+                        {filteredUsers.slice(0, 8).map((user) => (
+                          <motion.button
+                            key={user.id}
+                            whileHover={{ backgroundColor: "rgba(198, 167, 94, 0.1)" }}
+                            type="button"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setManualName(user.name || user.displayName || "");
+                              setManualPhone(user.phone || "");
+                              setSearchPhone("");
+                            }}
+                            className="w-full text-left text-xs p-2 rounded-xs transition-all"
+                          >
+                            <strong className="text-dark block">{user.name || user.displayName || user.email}</strong>
+                            <span className="text-stone-gray">📱 {user.phone || "Sin teléfono"}</span>
+                          </motion.button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-stone-gray text-center py-2">
+                        No se encontraron usuarios
+                      </div>
+                    )}
+                  </motion.div>
                 )}
-              </div>
-            )}
+              </AnimatePresence>
 
-            <div style={fieldRowStyle}>
-              <label style={fieldLabelStyle}>
-                Nombre del cliente
-                <input
-                  type="text"
-                  value={selectedUser ? selectedUser.name || selectedUser.displayName || "" : manualName}
-                  onChange={(e) => {
-                    setManualName(e.target.value);
-                    if (selectedUser) setSelectedUser(null);
-                  }}
-                  style={inputStyle}
-                  required
-                />
-              </label>
-              <label style={fieldLabelStyle}>
-                Teléfono del cliente
-                <input
-                  type="text"
-                  value={selectedUser ? selectedUser.phone || "" : manualPhone}
-                  onChange={(e) => {
-                    setManualPhone(e.target.value);
-                    if (selectedUser) setSelectedUser(null);
-                  }}
-                  style={inputStyle}
-                  required
-                />
-              </label>
-            </div>
+              <Input
+                label="Nombre"
+                type="text"
+                value={selectedUser ? selectedUser.name || selectedUser.displayName || "" : manualName}
+                onChange={(e) => {
+                  setManualName(e.target.value);
+                  if (selectedUser) setSelectedUser(null);
+                }}
+                required
+              />
 
-            {selectedUser && (
-              <div style={selectedUserCardStyle}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>✓ {selectedUser.name || selectedUser.displayName || selectedUser.email}</div>
-                  <div style={{ fontSize: 13, color: "#555" }}>📱 {selectedUser.phone}</div>
-                  <div style={{ fontSize: 13, color: "#666" }}>✉️ {selectedUser.email}</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedUser(null);
-                    setManualName("");
-                    setManualPhone("");
-                  }}
-                  style={secondaryButtonStyle}
+              <Input
+                label="Teléfono"
+                type="text"
+                value={selectedUser ? selectedUser.phone || "" : manualPhone}
+                onChange={(e) => {
+                  setManualPhone(e.target.value);
+                  if (selectedUser) setSelectedUser(null);
+                }}
+                required
+              />
+
+              {selectedUser && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="border-2 border-gold bg-gold bg-opacity-10 rounded-sm p-3"
                 >
-                  Cambiar cliente
-                </button>
-              </div>
-            )}
+                  <div className="text-sm font-bold text-dark mb-1">✓ Cliente seleccionado</div>
+                  <div className="text-xs text-stone-gray mb-2">{selectedUser.email}</div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setManualName("");
+                      setManualPhone("");
+                    }}
+                    className="text-xs text-gold font-medium hover:text-dark transition-colors"
+                  >
+                    Cambiar cliente
+                  </button>
+                </motion.div>
+              )}
 
-            <div style={fieldRowStyle}>
-              <label style={fieldLabelStyle}>
-                Fecha
-                <input
-                  type="date"
-                  value={formState.date}
-                  onChange={(e) => setFormState({ ...formState, date: e.target.value })}
-                  style={inputStyle}
-                  required
-                />
-              </label>
-              <label style={fieldLabelStyle}>
-                Hora
+              <Input
+                label="Fecha"
+                type="date"
+                value={formState.date}
+                onChange={(e) => setFormState({ ...formState, date: e.target.value })}
+                required
+              />
+
+              <div>
+                <label className="block text-sm font-medium text-dark mb-2">Hora</label>
                 <select
                   value={formState.time}
                   onChange={(e) => setFormState({ ...formState, time: e.target.value })}
-                  style={inputStyle}
+                  className="w-full px-4 py-2.5 border-2 border-gold rounded-sm font-sans focus:outline-none focus:ring-2 focus:ring-gold"
                   required
                 >
                   <option value="">Selecciona una hora</option>
@@ -612,27 +655,23 @@ const AdminReservationsView = () => {
                     ))}
                   </optgroup>
                 </select>
-              </label>
-            </div>
+              </div>
 
-            <div style={fieldRowStyle}>
-              <label style={fieldLabelStyle}>
-                Personas
-                <input
-                  type="number"
-                  min="1"
-                  value={formState.peopleCount}
-                  onChange={(e) => setFormState({ ...formState, peopleCount: Number(e.target.value) })}
-                  style={inputStyle}
-                  required
-                />
-              </label>
-              <label style={fieldLabelStyle}>
-                Estado
+              <Input
+                label="Personas"
+                type="number"
+                min="1"
+                value={formState.peopleCount}
+                onChange={(e) => setFormState({ ...formState, peopleCount: Number(e.target.value) })}
+                required
+              />
+
+              <div>
+                <label className="block text-sm font-medium text-dark mb-2">Estado</label>
                 <select
                   value={formState.status}
                   onChange={(e) => setFormState({ ...formState, status: e.target.value })}
-                  style={inputStyle}
+                  className="w-full px-4 py-2.5 border-2 border-gold rounded-sm font-sans focus:outline-none focus:ring-2 focus:ring-gold"
                 >
                   {statusOptions.map((status) => (
                     <option key={status} value={status}>
@@ -640,317 +679,119 @@ const AdminReservationsView = () => {
                     </option>
                   ))}
                 </select>
-              </label>
-            </div>
+              </div>
 
-            <label style={fieldLabelStyle}>
-              Solicitudes especiales
-              <textarea
-                rows={4}
-                value={formState.specialRequests}
-                onChange={(e) => setFormState({ ...formState, specialRequests: e.target.value })}
-                style={{ ...inputStyle, minHeight: 100 }}
-              />
-            </label>
+              <div>
+                <label className="block text-sm font-medium text-dark mb-2">Solicitudes Especiales</label>
+                <textarea
+                  rows={3}
+                  value={formState.specialRequests}
+                  onChange={(e) => setFormState({ ...formState, specialRequests: e.target.value })}
+                  className="w-full px-4 py-2.5 border-2 border-gold rounded-sm font-sans focus:outline-none focus:ring-2 focus:ring-gold"
+                />
+              </div>
 
-            <div style={buttonRowStyle}>
-              <button type="submit" style={primaryButtonStyle} disabled={formLoading}>
-                {selectedReservation ? "Guardar cambios" : "Crear reserva"}
-              </button>
-              <button type="button" style={secondaryButtonStyle} onClick={resetForm} disabled={formLoading}>
-                Limpiar
-              </button>
-            </div>
-          </form>
-        </section>
+              <div className="flex gap-2">
+                <Button 
+                  variant="primary"
+                  size="sm"
+                  type="submit"
+                  disabled={formLoading}
+                  className="flex-1"
+                >
+                  {selectedReservation ? "Guardar" : "Crear"}
+                </Button>
+                <Button 
+                  variant="secondary"
+                  size="sm"
+                  type="button"
+                  onClick={resetForm}
+                  disabled={formLoading}
+                  className="flex-1"
+                >
+                  Limpiar
+                </Button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
 
-        <section style={panelStyle}>
-          <div style={panelHeaderStyle}>Asignar mesas</div>
-          {selectedReservation ? (
-            <>
-              <div style={infoSectionStyle}>
+        {/* Panel 3: Asignar Mesas */}
+        {selectedReservation && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 bg-white border-2 border-gold rounded-sm p-6 shadow-soft"
+          >
+            <div className="text-lg font-serif font-bold text-dark mb-4">Asignar Mesas</div>
+            
+            <div className="space-y-3 mb-4">
+              <div className="text-sm text-dark">
                 <strong>Reserva:</strong> {selectedReservation.userName || "Cliente"} — {selectedReservation.date} {selectedReservation.time}
               </div>
-              <div style={infoSectionStyle}>
-                <strong>Mesas asignadas:</strong>{" "}
-                {activeAssignedTableIds.length > 0 ? activeAssignedTableIds.join(", ") : "Sin mesas asignadas"}
+              <div className="text-sm text-dark">
+                <strong>Mesas asignadas:</strong> {activeAssignedTableIds.length > 0 ? activeAssignedTableIds.join(", ") : "Sin mesas"}
               </div>
-              <div style={{ marginBottom: 16 }}>
-                <div style={subHeaderStyle}>Mesas disponibles</div>
-                {availableTables.length === 0 ? (
-                  <div style={emptyRowStyle}>No hay mesas disponibles para esta fecha/hora.</div>
-                ) : (
-                  <div style={tableGridStyle}>
-                    {availableTables.map((table) => (
-                      <label key={table.id} style={tableCardStyle}>
-                        <input
-                          type="checkbox"
-                          checked={selectedTableIds.includes(table.id)}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setSelectedTableIds((prev) =>
-                              checked
-                                ? [...new Set([...prev, table.id])]
-                                : prev.filter((id) => id !== table.id),
-                            );
-                          }}
-                        />
-                        <div>
-                          <strong>Mesa {table.number || table.tableNumber || table.id}</strong>
-                        </div>
-                        <div>Capacidad: {table.capacity || "-"}</div>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div style={buttonRowStyle}>
-                <button
-                  type="button"
-                  onClick={handleAssignTables}
-                  disabled={assignmentLoading || selectedTableIds.length === 0}
-                  style={primaryButtonStyle}
-                >
-                  {assignmentLoading ? "Guardando..." : "Asignar mesas"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleUnassignTables}
-                  disabled={assignmentLoading || activeAssignedTableIds.length === 0}
-                  style={secondaryButtonStyle}
-                >
-                  Desasignar todas
-                </button>
-              </div>
-            </>
-          ) : (
-            <div style={emptyRowStyle}>Selecciona una reserva para administrar las mesas asignadas.</div>
-          )}
-        </section>
+            </div>
+
+            <div>
+              <div className="text-sm font-medium text-dark mb-3">Mesas disponibles</div>
+              {availableTables.length === 0 ? (
+                <div className="text-center text-stone-gray py-6 bg-pearl rounded-sm">
+                  No hay mesas disponibles
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
+                  {availableTables.map((table) => (
+                    <motion.label
+                      key={table.id}
+                      whileHover={{ scale: 1.05 }}
+                      className="border-2 border-gold rounded-sm p-3 cursor-pointer transition-all"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedTableIds.includes(table.id)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setSelectedTableIds((prev) =>
+                            checked
+                              ? [...new Set([...prev, table.id])]
+                              : prev.filter((id) => id !== table.id),
+                          );
+                        }}
+                        className="mr-2"
+                      />
+                      <div className="text-sm font-bold text-dark">Mesa {table.number || table.tableNumber || table.id}</div>
+                      <div className="text-xs text-stone-gray">Cap: {table.capacity || "-"}</div>
+                    </motion.label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleAssignTables}
+                disabled={assignmentLoading || selectedTableIds.length === 0}
+              >
+                {assignmentLoading ? "Guardando..." : "Asignar"}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleUnassignTables}
+                disabled={assignmentLoading || activeAssignedTableIds.length === 0}
+              >
+                Desasignar Todas
+              </Button>
+            </div>
+          </motion.div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
-};
-
-const containerStyle = {
-  padding: 24,
-};
-
-const headerStyle = {
-  marginBottom: 24,
-};
-
-const titleStyle = {
-  fontSize: 32,
-  margin: 0,
-  color: "#222",
-};
-
-const subtitleStyle = {
-  marginTop: 8,
-  color: "#555",
-  lineHeight: 1.5,
-};
-
-const gridStyle = {
-  display: "grid",
-  gap: 24,
-  gridTemplateColumns: "1fr",
-};
-
-const panelStyle = {
-  background: "#fff",
-  borderRadius: 20,
-  boxShadow: "0 14px 32px rgba(0,0,0,0.08)",
-  padding: 22,
-};
-
-const panelHeaderStyle = {
-  marginBottom: 18,
-  fontSize: 18,
-  fontWeight: 700,
-  color: "#222",
-};
-
-const filtersGridStyle = {
-  display: "grid",
-  gap: 16,
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-};
-
-const fieldRowStyle = {
-  display: "grid",
-  gap: 16,
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-};
-
-const fieldLabelStyle = {
-  display: "grid",
-  gap: 10,
-  fontSize: 14,
-  color: "#333",
-};
-
-const inputStyle = {
-  width: "100%",
-  borderRadius: 12,
-  border: "1px solid #d8d8d8",
-  padding: "12px 14px",
-  fontSize: 14,
-};
-
-const tableStyle = {
-  width: "100%",
-  borderCollapse: "collapse",
-};
-
-const statusSelectStyle = {
-  borderRadius: 10,
-  border: "1px solid #d8d8d8",
-  padding: "8px 10px",
-  width: "100%",
-  fontSize: 13,
-};
-
-const actionButtonStyle = {
-  appearance: "none",
-  border: "none",
-  background: "#DC143C",
-  color: "#fff",
-  borderRadius: 10,
-  padding: "8px 12px",
-  cursor: "pointer",
-};
-
-const primaryButtonStyle = {
-  appearance: "none",
-  border: "none",
-  background: "#DC143C",
-  color: "#fff",
-  borderRadius: 12,
-  padding: "12px 18px",
-  cursor: "pointer",
-  fontWeight: 700,
-};
-
-const secondaryButtonStyle = {
-  appearance: "none",
-  border: "1px solid #dcdcdc",
-  background: "#fafafa",
-  color: "#333",
-  borderRadius: 12,
-  padding: "12px 18px",
-  cursor: "pointer",
-};
-
-const buttonRowStyle = {
-  display: "flex",
-  gap: 12,
-  flexWrap: "wrap",
-  marginTop: 8,
-};
-
-const feedbackBoxBase = {
-  borderRadius: 14,
-  padding: 14,
-  marginBottom: 18,
-};
-
-const successBoxStyle = {
-  ...feedbackBoxBase,
-  background: "#e6ffed",
-  color: "#1f6e4d",
-};
-
-const errorBoxStyle = {
-  ...feedbackBoxBase,
-  background: "#ffe8e8",
-  color: "#8b0000",
-};
-
-const infoTextStyle = {
-  color: "#555",
-};
-
-const errorTextStyle = {
-  color: "#8b0000",
-};
-
-const emptyRowStyle = {
-  padding: 18,
-  color: "#666",
-  textAlign: "center",
-};
-
-const searchResultsStyle = {
-  display: "grid",
-  gap: 10,
-  marginTop: 12,
-  padding: "12px",
-  background: "#f9fafb",
-  borderRadius: 12,
-  border: "1px solid #eee",
-  maxHeight: "400px",
-  overflowY: "auto",
-};
-
-const searchResultButtonStyle = {
-  textAlign: "left",
-  background: "#f8fafb",
-  border: "1px solid #ddd",
-  borderRadius: 12,
-  padding: "12px 14px",
-  cursor: "pointer",
-  display: "grid",
-  gap: 4,
-  transition: "all 0.2s ease",
-  "&:hover": {
-    background: "#e8f2ff",
-    borderColor: "#DC143C",
-  },
-};
-
-const selectedUserCardStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "16px 18px",
-  borderRadius: 14,
-  border: "2px solid #DC143C",
-  background: "#fff5f7",
-  gap: 14,
-  boxShadow: "0 2px 8px rgba(220, 20, 60, 0.08)",
-};
-
-const infoSectionStyle = {
-  marginBottom: 12,
-  color: "#444",
-};
-
-const subHeaderStyle = {
-  marginBottom: 10,
-  fontWeight: 700,
-  color: "#222",
-};
-
-const tableGridStyle = {
-  display: "grid",
-  gap: 12,
-  gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-};
-
-const tableCardStyle = {
-  borderRadius: 14,
-  border: "1px solid #e5e7eb",
-  background: "#f8f9ff",
-  padding: 14,
-  display: "grid",
-  gap: 8,
-};
-
-const formStyle = {
-  display: "grid",
-  gap: 16,
 };
 
 export default AdminReservationsView;

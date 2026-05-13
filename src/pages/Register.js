@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import AuthService from "../services/AuthService";
-import "../styles/MinimalStyle.css";
+import { Button, Input } from "../components";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -90,66 +91,120 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container" style={{
-      minHeight: "calc(100vh - 60px)",
-      backgroundColor: "#faf5ed",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "20px",
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "480px",
-        backgroundColor: "white",
-        border: "1px solid #e0e0e0",
-        borderRadius: "4px",
-        padding: "40px",
-      }}>
-        <div style={{ marginBottom: "28px", textAlign: "center" }}>
-          <h1 style={{ fontSize: "28px", color: "#568d6e", marginBottom: "8px" }}>Crear Cuenta</h1>
-          <p style={{ fontSize: "14px", color: "#666666" }}>Únete a Tsinghe Cocina Fusión</p>
-        </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-pearl flex items-center justify-center px-4 py-8"
+    >
+      <div className="w-full max-w-md bg-white border border-gold rounded-xs p-8 shadow-soft">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="mb-7 text-center"
+        >
+          <h1 className="text-2xl font-serif font-bold text-dark mb-2">Crear Cuenta</h1>
+          <p className="text-sm text-stone-gray">Únete a Tsinghe Cocina Fusión</p>
+        </motion.div>
 
-        {success && <div className="success-box">✓ ¡Registro exitoso! Redirigiendo...</div>}
-        {error && <div className="error-box">⚠ {error}</div>}
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 p-3 bg-green-50 border border-gold text-dark text-sm rounded-xs text-center"
+          >
+            ✓ ¡Registro exitoso! Redirigiendo...
+          </motion.div>
+        )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Nombre Completo</label>
-            <input type="text" name="name" value={formData.name} onChange={handleInputChange} required placeholder="Ej: Juan García" />
-          </div>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 p-3 bg-red-50 border border-gold text-dark text-sm rounded-xs"
+          >
+            ⚠ {error}
+          </motion.div>
+        )}
 
-          <div className="form-group">
-            <label>Email</label>
-            <input type="email" name="email" value={formData.email} onChange={handleInputChange} required placeholder="tu@email.com" />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="Nombre Completo"
+            type="text"
+            name="name"
+            placeholder="Ej: Juan García"
+            value={formData.name}
+            onChange={handleInputChange}
+            required
+          />
 
-          <div className="form-group">
-            <label>Contraseña</label>
-            <input type="password" name="password" value={formData.password} onChange={handleInputChange} required placeholder="Mínimo 6 caracteres" />
-          </div>
+          <Input
+            label="Email"
+            type="email"
+            name="email"
+            placeholder="tu@email.com"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+          />
 
-          <div className="form-group">
-            <label>Confirmar Contraseña</label>
-            <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} required />
-          </div>
+          <Input
+            label="Contraseña"
+            type="password"
+            name="password"
+            placeholder="Mínimo 6 caracteres"
+            value={formData.password}
+            onChange={handleInputChange}
+            required
+          />
 
-          <div className="form-group">
-            <label>Número de Teléfono</label>
-            <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required placeholder="Ej: +34 600 123 456" />
-          </div>
+          <Input
+            label="Confirmar Contraseña"
+            type="password"
+            name="confirmPassword"
+            placeholder="Repite tu contraseña"
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            required
+          />
 
-          <button type="submit" disabled={loading} className="btn-primary" style={{ width: "100%", marginTop: "10px" }}>
+          <Input
+            label="Número de Teléfono"
+            type="tel"
+            name="phone"
+            placeholder="Ej: +34 600 123 456"
+            value={formData.phone}
+            onChange={handleInputChange}
+            required
+          />
+
+          <Button
+            type="submit"
+            variant="primary"
+            className="w-full mt-6"
+            disabled={loading}
+          >
             {loading ? "Registrando..." : "Registrarse"}
-          </button>
+          </Button>
         </form>
 
-        <div style={{ textAlign: "center", marginTop: "20px", fontSize: "13px" }}>
-          ¿Ya tienes cuenta? <Link to="/login" style={{ color: "#2e8b57", fontWeight: "600", textDecoration: "none" }}>Inicia sesión</Link>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="text-center mt-5 text-xs text-stone-gray"
+        >
+          ¿Ya tienes cuenta?{" "}
+          <Link
+            to="/login"
+            className="text-gold font-semibold hover:text-gold-light transition-colors duration-200"
+          >
+            Inicia sesión
+          </Link>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

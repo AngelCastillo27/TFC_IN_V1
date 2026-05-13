@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/ChineseStyle.css";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) => {
   const navigate = useNavigate();
@@ -12,20 +12,20 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
   const menuOptions =
     role === "admin"
       ? [
-          { id: "inicio", label: "Panel Principal", icon: "Inicio" },
-          { id: "preview-inicio", label: "Ver Inicio", icon: "Vista" },
-          { id: "preview-menu", label: "Ver Menu", icon: "Menu" },
-          { id: "admin-menu", label: "Gestionar Menu", icon: "Menu" },
-          { id: "admin-mesas", label: "Gestionar Mesas", icon: "Mesas" },
-          { id: "admin-ofertas", label: "Ofertas", icon: "Oferta" },
-          { id: "admin-reservas", label: "Todas las Reservas", icon: "Lista" },
+          { id: "inicio", label: "Panel Principal", icon: "🏠" },
+          { id: "preview-inicio", label: "Ver Inicio", icon: "👁️" },
+          { id: "preview-menu", label: "Ver Menu", icon: "📖" },
+          { id: "admin-menu", label: "Gestionar Menu", icon: "🍜" },
+          { id: "admin-mesas", label: "Gestionar Mesas", icon: "🪑" },
+          { id: "admin-ofertas", label: "Ofertas", icon: "🏷️" },
+          { id: "admin-reservas", label: "Todas las Reservas", icon: "📋" },
         ]
       : [
-          { id: "inicio", label: "Dashboard", icon: "Panel" },
-          { id: "preview-inicio", label: "Ver Inicio", icon: "Vista" },
-          { id: "preview-menu", label: "Ver Menú", icon: "Menu" },
-          { id: "reservas", label: "Mis Reservas", icon: "Lista" },
-          { id: "nueva-reserva", label: "Nueva Reserva", icon: "Crear" },
+          { id: "inicio", label: "Dashboard", icon: "📊" },
+          { id: "preview-inicio", label: "Ver Inicio", icon: "👁️" },
+          { id: "preview-menu", label: "Ver Menú", icon: "📖" },
+          { id: "reservas", label: "Mis Reservas", icon: "📅" },
+          { id: "nueva-reserva", label: "Nueva Reserva", icon: "➕" },
         ];
 
   const handleLogout = async () => {
@@ -35,153 +35,84 @@ const Sidebar = ({ role, userName, selectedOption, onSelectOption, onLogout }) =
 
   return (
     <>
-      <button
-        className="sidebar-toggle"
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         title={isOpen ? "Ocultar menu" : "Mostrar menu"}
+        className="fixed left-0 top-20 z-50 bg-dark text-gold p-2 rounded-r-xs font-bold hover:bg-gold hover:text-dark transition-colors duration-200"
       >
-        =
-      </button>
+        {isOpen ? "X" : "≡"}
+      </motion.button>
 
-      <aside
-        className={`sidebar ${isOpen ? "open" : "closed"}`}
-        style={{
-          width: isOpen ? "220px" : "0",
-          background: "#1a1a1a",
-          borderRight: isOpen ? "3px solid #DC143C" : "none",
-          display: "flex",
-          flexDirection: "column",
-          padding: isOpen ? "24px 0" : "0",
-          transition: "all 0.3s ease",
-          overflow: "hidden",
-        }}
-      >
+      <AnimatePresence mode="wait">
         {isOpen && (
-          <>
-            <div style={{ padding: "0 20px 20px", borderBottom: "1px solid #333" }}>
-              <div
-                style={{
-                  fontSize: "11px",
-                  color: "#888",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                }}
-              >
-                Rol
+          <motion.aside
+            initial={{ x: -220, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -220, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed left-0 top-0 w-55 h-screen bg-dark border-r border-gold z-40 pt-20 flex flex-col overflow-hidden"
+          >
+            <div className="px-5 pb-5 border-b border-gold">
+              <div className="text-xs text-stone-gray uppercase tracking-widest">
+                {" ----> "} ROL
               </div>
-              <div
-                style={{
-                  color: "#FFD700",
-                  fontWeight: "bold",
-                  marginTop: "4px",
-                  fontSize: "14px",
-                }}
-              >
-                {role === "admin" ? "Administrador" : "Comensal"}
+              <div className="text-gold font-bold mt-1 text-sm">
+                {role === "admin" ? "--->Administrador" : "--->Comensal"}
               </div>
               {userName && (
-                <div
-                  style={{
-                    color: "#ccc",
-                    fontSize: "12px",
-                    marginTop: "8px",
-                    fontStyle: "italic",
-                  }}
-                >
+                <div className="text-stone-gray text-xs mt-2 italic">
                   {userName}
                 </div>
               )}
             </div>
 
-            <nav style={{ flex: 1, padding: "16px 0" }}>
-              <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            <nav className="flex-1 py-4">
+              <ul className="space-y-1 m-0 p-0">
                 {menuOptions.map((option) => {
                   const isActive = selectedOption === option.id;
                   return (
-                    <li key={option.id}>
-                      <button
+                    <motion.li key={option.id}>
+                      <motion.button
+                        whileHover={{ x: 4 }}
                         onClick={() => onSelectOption(option.id)}
-                        style={{
-                          width: "100%",
-                          background: isActive ? "#DC143C" : "transparent",
-                          color: isActive ? "#fff" : "#ccc",
-                          border: "none",
-                          borderLeft: isActive
-                            ? "4px solid #FFD700"
-                            : "4px solid transparent",
-                          padding: "12px 20px",
-                          textAlign: "left",
-                          cursor: "pointer",
-                          fontSize: "14px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "10px",
-                          transition: "all 0.2s",
-                          fontWeight: isActive ? "bold" : "normal",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isActive) e.currentTarget.style.background = "#2a2a2a";
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isActive) e.currentTarget.style.background = "transparent";
-                        }}
+                        className={`w-full py-3 px-5 text-left text-sm font-medium flex items-center gap-3 transition-all duration-200 ${
+                          isActive
+                            ? "bg-gold text-dark border-l-4 border-dark font-bold"
+                            : "text-stone-gray hover:bg-gray-800 border-l-4 border-transparent"
+                        }`}
                       >
-                        <span style={{ fontSize: "11px", minWidth: "38px" }}>
-                          {option.icon}
-                        </span>
+                        <span className="text-base">{option.icon}</span>
                         {option.label}
-                      </button>
-                    </li>
+                      </motion.button>
+                    </motion.li>
                   );
                 })}
               </ul>
             </nav>
 
-            <div style={{ padding: "0 16px" }}>
-              <button
+            <div className="p-4 border-t border-gold">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleLogout}
-                style={{
-                  width: "100%",
-                  background: "transparent",
-                  color: "#DC143C",
-                  border: "2px solid #DC143C",
-                  borderRadius: "6px",
-                  padding: "10px",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  fontWeight: "bold",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#DC143C";
-                  e.currentTarget.style.color = "#fff";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = "#DC143C";
-                }}
+                className="w-full bg-transparent text-gold border border-gold rounded-xs py-2 px-4 text-xs font-bold hover:bg-gold hover:text-dark transition-colors duration-200"
               >
-                Cerrar Sesion
-              </button>
+                Cerrar Sesión
+              </motion.button>
             </div>
-          </>
+          </motion.aside>
         )}
-      </aside>
+      </AnimatePresence>
 
       {isOpen && (
-        <div
-          className="sidebar-overlay"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           onClick={() => setIsOpen(false)}
-          style={{
-            display: "none",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.5)",
-            zIndex: 999,
-          }}
+          className="fixed inset-0 bg-black/50 z-30 hidden md:hidden"
         />
       )}
     </>

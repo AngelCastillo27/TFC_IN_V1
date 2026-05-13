@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import useReservations from "../hooks/useReservations";
 import useTables from "../hooks/useTables";
+import { Button } from "../components";
 
 const ReservationsView = ({ role, userId }) => {
   const navigate = useNavigate();
@@ -19,149 +21,185 @@ const ReservationsView = ({ role, userId }) => {
     setEditingId(null);
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
-        Cargando reservas...
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-pearl flex items-center justify-center"
+      >
+        <motion.div
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="text-lg text-stone-gray"
+        >
+          Cargando reservas...
+        </motion.div>
+      </motion.div>
     );
+  }
 
   return (
-    <div style={{ padding: "20px", maxWidth: "1000px", margin: "0 auto" }}>
-      <h2
-        style={{
-          color: "#DC143C",
-          borderBottom: "2px solid #FFD700",
-          paddingBottom: "10px",
-        }}
-      >
-        📋 Gestión de Reservas
-      </h2>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-pearl px-4 py-8"
+    >
+      <div className="max-w-4xl mx-auto">
+        <motion.h2 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl font-serif font-bold text-dark mb-8 pb-4 border-b-2 border-gold"
+        >
+          📋 Mis Reservas
+        </motion.h2>
 
-      <div style={{ display: "grid", gap: "15px", marginTop: "20px" }}>
-        {reservations.map((res) => {
-          const reservationTableIds = Array.isArray(res.tableIds)
-            ? res.tableIds
-            : [];
-          const assignedTables = tables
-            .filter(
-              (table) =>
-                reservationTableIds.includes(table.id) ||
-                table.reservationId === res.id ||
-                table.id === res.tableId,
-            )
-            .sort(
-              (a, b) =>
-                Number(a.tableNumber || a.number || 0) -
-                Number(b.tableNumber || b.number || 0),
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-4"
+        >
+          {reservations.map((res, idx) => {
+            const reservationTableIds = Array.isArray(res.tableIds)
+              ? res.tableIds
+              : [];
+            const assignedTables = tables
+              .filter(
+                (table) =>
+                  reservationTableIds.includes(table.id) ||
+                  table.reservationId === res.id ||
+                  table.id === res.tableId,
+              )
+              .sort(
+                (a, b) =>
+                  Number(a.tableNumber || a.number || 0) -
+                  Number(b.tableNumber || b.number || 0),
+              );
+            const fusionCode =
+              res.fusionCode ||
+              assignedTables.find((table) => table.fusionCode)?.fusionCode;
+            const tableNumbers = assignedTables.map(
+              (table) => table.tableNumber || table.number || table.id,
             );
-          const fusionCode =
-            res.fusionCode ||
-            assignedTables.find((table) => table.fusionCode)?.fusionCode;
-          const tableNumbers = assignedTables.map(
-            (table) => table.tableNumber || table.number || table.id,
-          );
-          const tableDisplay =
-            tableNumbers.length > 1
-              ? `${fusionCode ? `${fusionCode}: ` : ""}Mesas ${tableNumbers.join(", ")}`
-              : tableNumbers.length === 1
-                ? `Mesa ${tableNumbers[0]}`
-                : "Pendiente";
+            const tableDisplay =
+              tableNumbers.length > 1
+                ? `${fusionCode ? `${fusionCode}: ` : ""}Mesas ${tableNumbers.join(", ")}`
+                : tableNumbers.length === 1
+                  ? `Mesa ${tableNumbers[0]}`
+                  : "Pendiente";
 
-          return (
-            <div key={res.id} style={resCard}>
-              <div style={{ flex: 2 }}>
-                <h4 style={{ margin: "0 0 10px 0" }}>
-                  👤 {res.userName || "Cliente"}
-                </h4>
-                <p>
-                  📅 <b>Fecha:</b> {res.reservationDate}
-                  <p></p> 
-                  ⌚ <b>Hora</b> {res.reservationTime}
-                </p>
-
-                {editingId === res.id ? (
-                  <div style={{ margin: "10px 0" }}>
-                    <input
-                      type="number"
-                      value={editData.numPeople}
-                      onChange={(e) =>
-                        setEditData({ ...editData, numPeople: e.target.value })
-                      }
-                      style={{ width: "60px", padding: "5px" }}
-                    />
+            return (
+              <motion.div
+                key={res.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                whileHover={{ y: -2, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+                className="bg-white border-2 border-gold rounded-sm p-6 shadow-soft"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Información de Reserva */}
+                  <div className="space-y-3">
+                    <h4 className="text-xl font-serif font-bold text-dark">
+                      👤 {res.userName || "Cliente"}
+                    </h4>
+                    
+                    <div className="text-sm text-dark space-y-1">
+                      <p><strong>📅 Fecha:</strong> {res.reservationDate}</p>
+                      <p><strong>⌚ Hora:</strong> {res.reservationTime}</p>
+                      
+                      {editingId === res.id ? (
+                        <div className="flex gap-2">
+                          <label className="text-sm font-medium">Personas:</label>
+                          <input
+                            type="number"
+                            value={editData.numPeople}
+                            onChange={(e) =>
+                              setEditData({ ...editData, numPeople: e.target.value })
+                            }
+                            className="w-16 px-2 py-1 border-2 border-gold rounded-xs text-sm focus:outline-none focus:ring-2 focus:ring-gold"
+                          />
+                        </div>
+                      ) : (
+                        <p><strong>👥 Personas:</strong> {res.numberOfPeople}</p>
+                      )}
+                      
+                      <p><strong>🪑 Mesa:</strong> {tableDisplay}</p>
+                    </div>
                   </div>
-                ) : (
-                  <p>
-                    👥 <b>Personas:</b> {res.numberOfPeople}
-                  </p>
-                )}
 
-                <p>
-                  🪑 <b>Mesa:</b>{" "}
-                  {tableDisplay}
-                </p>
-              </div>
+                  {/* Acciones */}
+                  <div className="flex flex-col gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="button"
+                      onClick={() =>
+                        navigate("/admin/tables", {
+                          state: {
+                            pendingAssignment: {
+                              resId: res.id,
+                              numberOfPeople: res.numberOfPeople,
+                              userName: res.userName,
+                            },
+                          },
+                        })
+                      }
+                      className="px-4 py-2 bg-blue-600 text-white rounded-xs font-medium hover:bg-blue-700 transition-all text-sm"
+                    >
+                      🧩 Asignar Mesas
+                    </motion.button>
 
-              <div style={actionButtonsGroup}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate("/admin/tables", {
-                      state: {
-                        pendingAssignment: {
-                          resId: res.id,
-                          numberOfPeople: res.numberOfPeople,
-                          userName: res.userName,
-                        },
-                      },
-                    })
-                  }
-                  style={btnBlue}
-                >
-                  🧩 ASIGNAR / FUSIONAR
-                </button>
+                    {editingId === res.id ? (
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleEditSave(res.id)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-xs font-medium hover:bg-green-700 transition-all text-sm"
+                      >
+                        💾 Guardar
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          setEditingId(res.id);
+                          setEditData({ numPeople: res.numberOfPeople });
+                        }}
+                        className="px-4 py-2 bg-gold text-dark rounded-xs font-medium hover:bg-gold-light transition-all text-sm"
+                      >
+                        ✏️ Editar Cantidad
+                      </motion.button>
+                    )}
 
-                {editingId === res.id ? (
-                  <button
-                    onClick={() => handleEditSave(res.id)}
-                    style={btnGreen}
-                  >
-                    💾 GUARDAR
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setEditingId(res.id);
-                      setEditData({ numPeople: res.numberOfPeople });
-                    }}
-                    style={btnYellow}
-                  >
-                    ✏️ EDITAR CANTIDAD
-                  </button>
-                )}
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() =>
+                        updateReservation(res.id, { status: "confirmada" })
+                      }
+                      className="px-4 py-2 bg-green-50 border-2 border-green-400 text-green-700 rounded-xs font-medium hover:bg-green-100 transition-all text-sm"
+                    >
+                      ✅ Confirmar
+                    </motion.button>
 
-                <button
-                  onClick={() =>
-                    updateReservation(res.id, { status: "confirmada" })
-                  }
-                  style={btnConfirm}
-                >
-                  ✅ CONFIRMAR
-                </button>
-
-                <button
-                  onClick={() => deleteReservation(res.id)}
-                  style={btnDelete}
-                >
-                  🗑️ ELIMINAR
-                </button>
-              </div>
-            </div>
-          );
-        })}
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => deleteReservation(res.id)}
+                      className="px-4 py-2 text-stone-gray hover:text-red-600 text-sm transition-colors"
+                    >
+                      🗑️ Eliminar
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

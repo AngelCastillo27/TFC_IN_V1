@@ -4,8 +4,9 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import AuthService from "../services/AuthService";
-import "../styles/MinimalStyle.css";
+import { Button, Input } from "../components";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -137,175 +138,161 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div style={{
-      minHeight: "calc(100vh - 60px)",
-      backgroundColor: "#faf5ed",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "20px",
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "480px",
-        backgroundColor: "white",
-        border: "1px solid #e0e0e0",
-        borderRadius: "4px",
-        padding: "clamp(20px, 5vw, 40px)",
-      }}>
-        <div style={{ marginBottom: "28px", textAlign: "center" }}>
-          <h1 style={{
-            fontSize: "28px",
-            color: "#568d6e",
-            marginBottom: "8px",
-          }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-pearl flex items-center justify-center px-4 py-8"
+    >
+      <div className="w-full max-w-md bg-white border border-gold rounded-xs p-8 shadow-soft">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="mb-7 text-center"
+        >
+          <h1 className="text-2xl font-serif font-bold text-dark mb-2">
             {isGoogleSetup ? "Completar Registro" : "Recuperar Contraseña"}
           </h1>
-          <p style={{
-            fontSize: "13px",
-            color: "#666666",
-            margin: 0,
-          }}>
+          <p className="text-xs text-stone-gray">
             {isGoogleSetup
               ? "Proporciona tu número de teléfono y crea una contraseña"
               : step === 1
               ? "Ingresa tu email para recibir un token"
               : "Ingresa el token y tu nueva contraseña"}
           </p>
-        </div>
+        </motion.div>
 
         {message && (
-          <div className="success-message" style={{ marginBottom: "16px" }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 p-3 bg-green-50 border border-gold text-dark text-xs rounded-xs text-center"
+          >
             ✓ {message}
-          </div>
+          </motion.div>
         )}
 
         {error && (
-          <div className="error-message" style={{ marginBottom: "16px" }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 p-3 bg-red-50 border border-gold text-dark text-xs rounded-xs"
+          >
             {error}
-          </div>
+          </motion.div>
         )}
 
-        {step === 1 && (
-          <form onSubmit={handleRequestToken} style={{ marginBottom: "20px" }}>
-            <div className="form-group">
-              <label>Email</label>
-              <input
+        <AnimatePresence mode="wait">
+          {step === 1 && (
+            <motion.form
+              key="step1"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.3 }}
+              onSubmit={handleRequestToken}
+              className="space-y-4 mb-5"
+            >
+              <Input
+                label="Email"
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary"
-              style={{ width: "100%" }}
+              <Button type="submit" variant="primary" className="w-full" disabled={loading}>
+                {loading ? "Enviando..." : "Enviar Token"}
+              </Button>
+            </motion.form>
+          )}
+
+          {step === 2 && (
+            <motion.form
+              key="step2"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.3 }}
+              onSubmit={handleResetPassword}
+              className="space-y-4 mb-5"
             >
-              {loading ? "Enviando..." : "Enviar Token"}
-            </button>
-          </form>
-        )}
-
-        {step === 2 && (
-          <form onSubmit={handleResetPassword} style={{ marginBottom: "20px" }}>
-            <div className="form-group">
-              <label>Email</label>
-              <input
+              <Input
+                label="Email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isGoogleSetup}
                 required
               />
-            </div>
 
-            {isGoogleSetup && (
-              <div className="form-group">
-                <label>Número de Teléfono *</label>
-                <input
+              {isGoogleSetup && (
+                <Input
+                  label="Número de Teléfono"
                   type="tel"
                   placeholder="Ej: +34 600 123 456"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
                 />
-              </div>
-            )}
+              )}
 
-            {!isGoogleSetup && (
-              <div className="form-group">
-                <label>Token (3 caracteres)</label>
-                <input
-                  type="text"
-                  placeholder="Ej: ABC"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value.toUpperCase())}
-                  maxLength="3"
-                  required
-                />
-                <small style={{
-                  fontSize: "12px",
-                  color: "#999999",
-                  display: "block",
-                  marginTop: "4px",
-                }}>
-                  Verifica tu email y copia el token
-                </small>
-              </div>
-            )}
+              {!isGoogleSetup && (
+                <div>
+                  <Input
+                    label="Token (3 caracteres)"
+                    type="text"
+                    placeholder="Ej: ABC"
+                    value={token}
+                    onChange={(e) => setToken(e.target.value.toUpperCase())}
+                    maxLength="3"
+                    required
+                  />
+                  <p className="text-xs text-stone-gray mt-2">
+                    Verifica tu email y copia el token
+                  </p>
+                </div>
+              )}
 
-            <div className="form-group">
-              <label>Nueva Contraseña</label>
-              <input
+              <Input
+                label="Nueva Contraseña"
                 type="password"
                 placeholder="Mínimo 4 caracteres"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
               />
-            </div>
 
-            <div className="form-group">
-              <label>Confirmar Contraseña</label>
-              <input
+              <Input
+                label="Confirmar Contraseña"
                 type="password"
                 placeholder="Repite tu contraseña"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary"
-              style={{ width: "100%" }}
-            >
-              {loading ? "Actualizando..." : "Actualizar Contraseña"}
-            </button>
-          </form>
-        )}
+              <Button type="submit" variant="primary" className="w-full" disabled={loading}>
+                {loading ? "Actualizando..." : "Actualizar Contraseña"}
+              </Button>
+            </motion.form>
+          )}
+        </AnimatePresence>
 
-        <div style={{
-          textAlign: "center",
-          fontSize: "13px",
-          color: "#666666",
-        }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="text-center text-xs text-stone-gray"
+        >
           {step === 1 ? (
             <>
               ¿Recuerdas tu contraseña?{" "}
               <Link
                 to="/login"
-                style={{
-                  color: "#2e8b57",
-                  textDecoration: "none",
-                  fontWeight: "600",
-                }}
+                className="text-gold font-semibold hover:text-gold-light transition-colors duration-200"
               >
                 Inicia sesión
               </Link>
@@ -323,23 +310,15 @@ const ForgotPassword = () => {
                   setError(null);
                   setMessage("");
                 }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#2e8b57",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  fontWeight: "600",
-                  fontSize: "inherit",
-                }}
+                className="bg-none border-none text-gold font-semibold underline cursor-pointer hover:text-gold-light transition-colors duration-200"
               >
                 Volver
               </button>
             </>
           )}
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

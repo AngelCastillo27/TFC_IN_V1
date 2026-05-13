@@ -6,6 +6,7 @@
 
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import ReservationFormComensal from "../components/ReservationFormComensal";
 import AdminReservationForm from "../components/AdminReservationForm";
@@ -17,32 +18,29 @@ import AdminTables from "./AdminTables";
 import AdminOffers from "./AdminOffers";
 import Home from "./Home";
 import Menu from "./Menu";
-import "../styles/ChineseStyle.css";
 
 // Pantalla de bienvenida segun rol
 const WelcomePanel = ({ role, userName }) => (
-  <div style={{ padding: "40px 20px", textAlign: "center" }}>
-    <div style={{ fontSize: "60px", marginBottom: "16px" }}>
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.4 }}
+    className="py-10 px-5 text-center"
+  >
+    <div className="text-6xl mb-4">
       {role === "admin" ? "🛠️" : "🍽️"}
     </div>
-    <h2 style={{ color: "#DC143C", marginBottom: "8px" }}>
+    <h2 className="text-2xl font-serif font-bold text-dark mb-2">
       {role === "admin"
         ? `Panel de Administración`
         : `¡Bienvenido, ${userName || "Usuario"}!`}
     </h2>
     {role !== "admin" && (
-      <p style={{ color: "#888", fontSize: "14px", marginBottom: "12px" }}>
+      <p className="text-sm text-stone-gray mb-3">
         Tsinghe Cocina Fusión
       </p>
     )}
-    <p
-      style={{
-        color: "#555",
-        maxWidth: "480px",
-        margin: "0 auto",
-        lineHeight: "1.6",
-      }}
-    >
+    <p className="text-stone-gray max-w-md mx-auto leading-relaxed">
       {role === "admin"
         ? "Desde aqui puedes gestionar el menu del restaurante, las mesas, las ofertas y todas las reservas."
         : "Aqui puedes crear, consultar y cancelar tus reservas en Tsinghe Cocina Fusión."}
@@ -50,15 +48,7 @@ const WelcomePanel = ({ role, userName }) => (
 
     {/* Tarjetas informativas para admin */}
     {role === "admin" && (
-      <div
-        style={{
-          display: "flex",
-          gap: "16px",
-          justifyContent: "center",
-          marginTop: "32px",
-          flexWrap: "wrap",
-        }}
-      >
+      <div className="flex gap-4 justify-center mt-8 flex-wrap">
         {[
           { emoji: "🍜", label: "Menu", desc: "Platos, precios y alergenos" },
           {
@@ -73,31 +63,24 @@ const WelcomePanel = ({ role, userName }) => (
             desc: "Todas las reservas del restaurante",
           },
         ].map((c) => (
-          <div
+          <motion.div
             key={c.label}
-            style={{
-              background: "#fff",
-              border: "2px solid #FFD700",
-              borderRadius: "10px",
-              padding: "20px 24px",
-              minWidth: "140px",
-              textAlign: "center",
-            }}
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white border border-gold rounded-xs p-6 min-w-[140px] text-center shadow-soft"
           >
-            <div style={{ fontSize: "32px" }}>{c.emoji}</div>
-            <div
-              style={{ fontWeight: "bold", color: "#DC143C", marginTop: "8px" }}
-            >
+            <div className="text-3xl">{c.emoji}</div>
+            <div className="font-bold text-dark mt-2">
               {c.label}
             </div>
-            <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
+            <div className="text-xs text-stone-gray mt-1">
               {c.desc}
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     )}
-  </div>
+  </motion.div>
 );
 
 // Render del contenido segun opcion del sidebar
@@ -139,7 +122,7 @@ const renderContent = (selectedOption, role, userId, userName, userEmail) => {
 
     default:
       return (
-        <div style={{ padding: "40px", textAlign: "center", color: "#888" }}>
+        <div className="py-10 px-5 text-center text-stone-gray">
           Seccion no encontrada.
         </div>
       );
@@ -192,7 +175,7 @@ const Dashboard = ({ role, userId, userName, userEmail, logout }) => {
   }, [navigate, userEmail]);
 
   return (
-    <div style={{ display: "flex", minHeight: "calc(100vh - 63px)" }}>
+    <div className="flex min-h-screen bg-pearl">
       {/* Sidebar Component */}
       <Sidebar
         role={role}
@@ -203,13 +186,7 @@ const Dashboard = ({ role, userId, userName, userEmail, logout }) => {
       />
 
       {/* ── Contenido principal ─────────────────────────────────────────── */}
-      <main
-        style={{
-          flex: 1,
-          background: "#fafaf5",
-          overflowY: "auto",
-        }}
-      >
+      <main className="flex-1 bg-pearl overflow-y-auto">
         {renderContent(selectedOption, role, userId, userName, userEmail)}
       </main>
     </div>

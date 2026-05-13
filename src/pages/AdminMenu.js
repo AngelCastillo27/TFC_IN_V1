@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { db, storage } from '../firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import '../styles/AdminMenuView.css';
+import { Button, Input } from '../components';
 
 const AdminMenu = () => {
   const [platos, setPlatos] = useState([]);
@@ -409,273 +410,330 @@ const AdminMenu = () => {
   };
 
   if (loading) {
-    return <div className="menu-loading">Cargando menú...</div>;
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-pearl flex items-center justify-center"
+      >
+        <motion.div
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="text-lg text-stone-gray"
+        >
+          Cargando menú...
+        </motion.div>
+      </motion.div>
+    );
   }
 
   return (
-    <div className="menu-container">
-      <div className="menu-header">
-        <h2>Gestión de Carta</h2>
-        <div className="header-actions">
-          <button
-            className="new-plato-btn"
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-pearl px-4 py-8"
+    >
+      <div className="max-w-6xl mx-auto">
+        {/* Encabezado */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-between items-center mb-8"
+        >
+          <h2 className="text-4xl font-serif font-bold text-dark">Gestión de Carta</h2>
+          <Button
+            variant={showForm ? "secondary" : "primary"}
             onClick={() => setShowForm(!showForm)}
           >
             {showForm ? '❌ Cancelar' : '➕ Nuevo Plato'}
-          </button>
-        </div>
-      </div>
+          </Button>
+        </motion.div>
 
-      {loadError && (
-        <div className="data-error">Error al cargar datos: {loadError}</div>
-      )}
+        {/* Error */}
+        {loadError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-sm mb-6"
+          >
+            Error al cargar datos: {loadError}
+          </motion.div>
+        )}
 
-      {/* FORMULARIO */}
-      {showForm && (
-        <div className="form-container">
-          <form onSubmit={handleSubmit} className="plato-form">
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="nombre">Nombre del Plato *</label>
-                <input
-                  type="text"
-                  id="nombre"
+        {/* Formulario */}
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white border-2 border-gold rounded-sm p-8 mb-8 shadow-soft"
+            >
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                  label="Nombre del Plato *"
                   name="nombre"
                   value={formData.nombre}
                   onChange={handleInputChange}
-                  className="form-input"
                   placeholder="Ej: Paella Valenciana"
                   required
                 />
-              </div>
 
-              <div className="form-group">
-                <label>Categoría *</label>
-                <div className="category-options">
-                  {categorias.map(categoria => (
-                    <button
-                      type="button"
-                      key={categoria.id}
-                      className={`category-option ${formData.idCategoria === categoria.id ? 'selected' : ''}`}
-                      onClick={() => handleCategoriaChange(categoria.id)}
-                      aria-pressed={formData.idCategoria === categoria.id}
-                    >
-                      <span className="category-icon">
-                        {renderIcon(categoria.imagen, categoria.nombre)}
-                      </span>
-                      <span>{categoria.nombre || categoria.name || categoria.id}</span>
-                    </button>
-                  ))}
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-3">Categoría *</label>
+                  <div className="flex flex-wrap gap-2">
+                    {categorias.map(categoria => (
+                      <motion.button
+                        key={categoria.id}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        onClick={() => handleCategoriaChange(categoria.id)}
+                        className={`px-3 py-2 rounded-sm text-sm font-medium transition-all border-2 ${
+                          formData.idCategoria === categoria.id
+                            ? "border-gold bg-gold text-dark"
+                            : "border-gold bg-white text-dark hover:bg-pearl"
+                        }`}
+                      >
+                        {renderIcon(categoria.imagen, categoria.nombre)} {categoria.nombre}
+                      </motion.button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="form-group full-width">
-                <label htmlFor="descripcion">Descripción *</label>
-                <textarea
-                  id="descripcion"
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleInputChange}
-                  className="form-textarea"
-                  placeholder="Describe los ingredientes y características del plato..."
-                  rows="4"
-                  required
-                />
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-2">Descripción *</label>
+                  <textarea
+                    name="descripcion"
+                    value={formData.descripcion}
+                    onChange={handleInputChange}
+                    placeholder="Describe los ingredientes y características del plato..."
+                    rows="4"
+                    className="w-full px-4 py-2.5 border-2 border-gold rounded-sm font-sans focus:outline-none focus:ring-2 focus:ring-gold"
+                    required
+                  />
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="precio">Precio (€) *</label>
-                <input
+                <Input
+                  label="Precio (€) *"
                   type="number"
-                  id="precio"
                   name="precio"
                   value={formData.precio}
                   onChange={handleInputChange}
-                  className="form-input"
                   placeholder="0.00"
                   step="0.01"
                   min="0"
                   required
                 />
-              </div>
 
-              <div className="form-group full-width">
-                <label>Alérgenos</label>
-                <div className="alergenos-checkbox-group">
-                  {alergenos.map(alergeno => (
-                    <label
-                      key={alergeno.id}
-                      className={`alergeno-checkbox ${formData.alergenos.includes(alergeno.id) ? 'checked' : ''}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.alergenos.includes(alergeno.id)}
-                        onChange={() => handleAlergenoToggle(alergeno.id)}
-                      />
-                      <span className="alergeno-icon">
-                        {renderIcon(alergeno.imagen, alergeno.nombre)}
-                      </span>
-                      <span>{alergeno.nombre || alergeno.name || alergeno.id}</span>
-                    </label>
-                  ))}
-                </div>
-                {formData.alergenos.length > 0 && (
-                  <div className="selected-alergenos">
-                    <small>Seleccionados: {getAlergenosNombres(formData.alergenos)}</small>
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-2">Alérgenos</label>
+                  <div className="flex flex-wrap gap-2 border-2 border-gold rounded-sm p-3 bg-pearl">
+                    {alergenos.map(alergeno => (
+                      <label
+                        key={alergeno.id}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-xs cursor-pointer text-sm transition-all ${
+                          formData.alergenos.includes(alergeno.id)
+                            ? "bg-gold text-dark border-2 border-dark"
+                            : "bg-white border-2 border-gold text-dark"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.alergenos.includes(alergeno.id)}
+                          onChange={() => handleAlergenoToggle(alergeno.id)}
+                          className="hidden"
+                        />
+                        {renderIcon(alergeno.imagen, alergeno.nombre)} {alergeno.nombre}
+                      </label>
+                    ))}
                   </div>
-                )}
-              </div>
+                  {formData.alergenos.length > 0 && (
+                    <p className="text-xs text-stone-gray mt-2">
+                      Seleccionados: {getAlergenosNombres(formData.alergenos)}
+                    </p>
+                  )}
+                </div>
 
-              <div className="form-group full-width">
-                <label htmlFor="imagen">Imagen del Plato</label>
-                <input
-                  type="file"
-                  id="imagen"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="file-input"
-                />
-                {(formData.imagenPreview || editingPlato?.imagen) && (
-                  <div className="image-preview">
-                    <img
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-2">Imagen del Plato</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="w-full px-4 py-2.5 border-2 border-gold rounded-sm"
+                  />
+                  {(formData.imagenPreview || editingPlato?.imagen) && (
+                    <motion.img
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       src={formData.imagenPreview || editingPlato.imagen}
                       alt="Vista previa"
-                      className="preview-image"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="form-actions">
-              <button type="button" className="cancel-btn" onClick={resetForm}>
-                Cancelar
-              </button>
-              <button type="submit" className="submit-btn" disabled={uploading}>
-                {uploading ? 'Guardando...' : (editingPlato ? 'Actualizar Plato' : 'Crear Plato')}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* LISTA DE PLATOS */}
-      <div className="platos-grid">
-        {filteredPlatos.length > 0 ? (
-          filteredPlatos.map(plato => (
-            <div key={plato.id} className="plato-card">
-              <div className="plato-image">
-                {plato.imagen ? (
-                  <img src={plato.imagen} alt={plato.nombre} />
-                ) : (
-                  <div className="no-image">Sin imagen</div>
-                )}
-              </div>
-
-              <div className="plato-info">
-                <h3 className="plato-nombre">{plato.nombre}</h3>
-
-                <div className="plato-categoria">
-                  {getCategoriaImagen(plato.idCategoria) && (
-                    <img
-                      src={getCategoriaImagen(plato.idCategoria)}
-                      alt={getCategoriaNombre(plato.idCategoria)}
-                      className="categoria-mini-icon"
+                      className="mt-3 h-32 object-cover rounded-sm border-2 border-gold"
                     />
                   )}
-                  <span>{getCategoriaNombre(plato.idCategoria)}</span>
                 </div>
 
-                <p className="plato-descripcion">{plato.descripcion}</p>
+                <div className="flex gap-3 pt-4">
+                  <Button variant="primary" type="submit" disabled={uploading} className="flex-1">
+                    {uploading ? "Guardando..." : (editingPlato ? "Actualizar" : "Crear")}
+                  </Button>
+                  <Button variant="secondary" type="button" onClick={resetForm} className="flex-1">
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-                <div className="plato-precio">
-                  <span className="precio">€{plato.precio?.toFixed(2)}</span>
+        {/* Grid de Platos */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+        >
+          {filteredPlatos.length > 0 ? (
+            filteredPlatos.map((plato, idx) => (
+              <motion.div
+                key={plato.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(0,0,0,0.1)" }}
+                className="bg-white border-2 border-gold rounded-sm overflow-hidden shadow-soft"
+              >
+                <div className="h-40 bg-pearl flex items-center justify-center overflow-hidden">
+                  {plato.imagen ? (
+                    <img src={plato.imagen} alt={plato.nombre} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-3xl">🍽️</span>
+                  )}
                 </div>
 
-                {plato.alergenos && plato.alergenos.length > 0 && (
-                  <div className="plato-alergenos">
-                    <small>Alérgenos: {getAlergenosNombres(plato.alergenos)}</small>
+                <div className="p-4 space-y-2">
+                  <h3 className="text-lg font-serif font-bold text-dark">{plato.nombre}</h3>
+
+                  <div className="flex items-center gap-1 text-sm text-stone-gray">
+                    <span>{renderIcon(getCategoriaImagen(plato.idCategoria), getCategoriaNombre(plato.idCategoria))}</span>
+                    <span>{getCategoriaNombre(plato.idCategoria)}</span>
                   </div>
-                )}
-              </div>
 
-              <div className="plato-actions">
-                <button
-                  className="edit-btn"
-                  onClick={() => editarPlato(plato)}
-                  title="Editar plato"
+                  <p className="text-sm text-dark line-clamp-2">{plato.descripcion}</p>
+
+                  <div className="text-lg font-bold text-gold pt-2">€{plato.precio?.toFixed(2)}</div>
+
+                  {plato.alergenos && plato.alergenos.length > 0 && (
+                    <p className="text-xs text-stone-gray">
+                      🥜 {getAlergenosNombres(plato.alergenos)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-2 p-4 border-t border-gold bg-pearl">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => editarPlato(plato)}
+                    className="flex-1 px-3 py-2 bg-gold text-dark rounded-xs font-medium hover:bg-gold-light transition-all"
+                  >
+                    ✏️ Editar
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => eliminarPlato(plato)}
+                    className="flex-1 px-3 py-2 bg-red-600 text-white rounded-xs font-medium hover:bg-red-700 transition-all"
+                  >
+                    🗑️ Eliminar
+                  </motion.button>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="col-span-full text-center py-12 text-stone-gray"
+            >
+              <div className="text-4xl mb-2">🍽️</div>
+              <p className="text-lg font-medium">No hay platos que coincidan con los filtros</p>
+              <p className="text-sm">Limpia los filtros o prueba con otra categoría.</p>
+            </motion.div>
+          )}
+        </motion.div>
+
+        {/* Panel de Filtros */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white border-2 border-gold rounded-sm p-6 shadow-soft"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-serif font-bold text-dark">Filtrar Carta</h3>
+            <Button variant="secondary" size="sm" onClick={resetFilters}>
+              Limpiar filtros
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-dark block mb-2">Filtrar por categoría:</label>
+              <div className="flex flex-wrap gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  type="button"
+                  onClick={() => setSelectedCategoryFilter('')}
+                  className={`px-3 py-2 rounded-xs text-sm font-medium transition-all border-2 ${
+                    selectedCategoryFilter === ''
+                      ? "border-gold bg-gold text-dark"
+                      : "border-gold bg-white text-dark hover:bg-pearl"
+                  }`}
                 >
-                  ✏️
-                </button>
-                <button
-                  className="delete-btn"
-                  onClick={() => eliminarPlato(plato)}
-                  title="Eliminar plato"
-                >
-                  🗑️
-                </button>
+                  Todas
+                </motion.button>
+                {categorias.map(categoria => (
+                  <motion.button
+                    key={categoria.id}
+                    whileHover={{ scale: 1.05 }}
+                    type="button"
+                    onClick={() => setSelectedCategoryFilter(categoria.id)}
+                    className={`px-3 py-2 rounded-xs text-sm font-medium transition-all border-2 ${
+                      selectedCategoryFilter === categoria.id
+                        ? "border-gold bg-gold text-dark"
+                        : "border-gold bg-white text-dark hover:bg-pearl"
+                    }`}
+                  >
+                    {renderIcon(categoria.imagen, categoria.nombre)} {categoria.nombre}
+                  </motion.button>
+                ))}
               </div>
             </div>
-          ))
-        ) : (
-          <div className="empty-state">
-            <div className="empty-icon">🍽️</div>
-            <p className="empty-title">No hay platos que coincidan con los filtros</p>
-            <p className="empty-text">Limpia los filtros o prueba con otra categoría.</p>
+
+            <div>
+              <label className="text-sm font-medium text-dark block mb-2">Excluir alérgenos:</label>
+              <div className="flex flex-wrap gap-2">
+                {alergenos.map(alergeno => (
+                  <motion.button
+                    key={alergeno.id}
+                    whileHover={{ scale: 1.05 }}
+                    type="button"
+                    onClick={() => toggleExcludedAlergeno(alergeno.id)}
+                    className={`px-3 py-2 rounded-xs text-sm font-medium transition-all border-2 ${
+                      excludedAlergenos.includes(alergeno.id)
+                        ? "border-gold bg-gold text-dark"
+                        : "border-gold bg-white text-dark hover:bg-pearl"
+                    }`}
+                  >
+                    {renderIcon(alergeno.imagen, alergeno.nombre)} {alergeno.nombre}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
           </div>
-        )}
+        </motion.div>
       </div>
-
-      <div className="bottom-filter-panel">
-        <div className="bottom-filter-title">
-          <h3>Filtrar carta</h3>
-          <button type="button" className="clear-filters-btn" onClick={resetFilters}>
-            Limpiar filtros
-          </button>
-        </div>
-
-        <div className="bottom-filter-group">
-          <span className="filter-label">Filtrar por categoría:</span>
-          <div className="filter-chip-row">
-            <button
-              type="button"
-              className={`filter-chip ${selectedCategoryFilter === '' ? 'active' : ''}`}
-              onClick={() => setSelectedCategoryFilter('')}
-            >
-              Todas
-            </button>
-            {categorias.map(categoria => (
-              <button
-                key={categoria.id}
-                type="button"
-                className={`filter-chip ${selectedCategoryFilter === categoria.id ? 'active' : ''}`}
-                onClick={() => setSelectedCategoryFilter(categoria.id)}
-              >
-                {renderIcon(categoria.imagen, categoria.nombre)}
-                {categoria.nombre || categoria.name || categoria.id}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="bottom-filter-group">
-          <span className="filter-label">Excluir alérgenos:</span>
-          <div className="filter-chip-row">
-            {alergenos.map(alergeno => (
-              <button
-                key={alergeno.id}
-                type="button"
-                className={`filter-chip ${excludedAlergenos.includes(alergeno.id) ? 'active' : ''}`}
-                onClick={() => toggleExcludedAlergeno(alergeno.id)}
-              >
-                {renderIcon(alergeno.imagen, alergeno.nombre)}
-                {alergeno.nombre || alergeno.name || alergeno.id}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+    </motion.div>
   );
 };
 

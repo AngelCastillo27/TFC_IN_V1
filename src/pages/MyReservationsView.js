@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import useReservations from "../hooks/useReservations";
 
 const MyReservationsView = ({ userId }) => {
@@ -6,35 +7,80 @@ const MyReservationsView = ({ userId }) => {
 
   if (loading) {
     return (
-      <div style={{ padding: "24px", textAlign: "center" }}>
+      <div className="py-6 px-6 text-center text-stone-gray">
         Cargando tus reservas...
       </div>
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3 },
+    },
+  };
+
+  const getStatusColor = (status) => {
+    return status === "confirmada"
+      ? "bg-green-50 border-green-300 text-green-700"
+      : "bg-yellow-50 border-yellow-300 text-yellow-700";
+  };
+
   return (
-    <div style={{ padding: "24px", maxWidth: "920px", margin: "0 auto" }}>
-      <h2 style={{ color: "#DC143C", marginBottom: "20px" }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="py-6 px-6 max-w-4xl mx-auto"
+    >
+      <motion.h2
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="text-3xl font-serif font-bold text-dark mb-6"
+      >
         📌 Mis Reservas
-      </h2>
+      </motion.h2>
 
       {error && (
-        <div style={{ color: "#8b0000", marginBottom: "20px" }}>{error}</div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-6 p-4 bg-red-50 border border-red-300 text-red-700 rounded-xs text-sm"
+        >
+          {error}
+        </motion.div>
       )}
 
       {reservations.length === 0 ? (
-        <div
-          style={{
-            background: "#fff9e6",
-            border: "1px solid #ffeeba",
-            padding: "20px",
-            borderRadius: "16px",
-          }}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="p-6 bg-pearl border border-gold rounded-xs text-center text-stone-gray"
         >
           Aún no tienes reservas. Puedes crear una nueva desde la opción "Nueva Reserva".
-        </div>
+        </motion.div>
       ) : (
-        <div style={{ display: "grid", gap: "18px" }}>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-4"
+        >
           {reservations
             .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
             .map((reservation) => {
@@ -45,72 +91,52 @@ const MyReservationsView = ({ userId }) => {
                 : [];
 
               return (
-                <div key={reservation.id} style={cardStyle}>
-                  <div>
-                    <div style={titleRowStyle}>
-                      <h3 style={{ margin: 0, fontSize: "18px" }}>
-                        Reserva {reservation.id.slice(-6).toUpperCase()}
-                      </h3>
-                      <span style={statusBadge(reservation.status)}>
-                        {reservation.status}
-                      </span>
-                    </div>
-                    <p style={metaText}>
-                      <strong>Fecha:</strong> {reservation.date || reservation.reservationDate}
+                <motion.div
+                  key={reservation.id}
+                  variants={itemVariants}
+                  whileHover={{ y: -2 }}
+                  className="bg-white border border-gold rounded-xs p-6 shadow-soft hover:shadow-md transition-shadow duration-200"
+                >
+                  <div className="flex justify-between items-start gap-4 mb-4">
+                    <h3 className="text-lg font-serif font-bold text-dark">
+                      Reserva {reservation.id.slice(-6).toUpperCase()}
+                    </h3>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
+                        reservation.status
+                      )}`}
+                    >
+                      {reservation.status}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-sm text-stone-gray">
+                    <p>
+                      <strong className="text-dark">📅 Fecha:</strong> {reservation.date || reservation.reservationDate}
                     </p>
-                    <p style={metaText}>
-                      <strong>Hora:</strong> {reservation.time || reservation.reservationTime}
+                    <p>
+                      <strong className="text-dark">🕐 Hora:</strong> {reservation.time || reservation.reservationTime}
                     </p>
-                    <p style={metaText}>
-                      <strong>Personas:</strong> {reservation.peopleCount || reservation.numberOfPeople}
+                    <p>
+                      <strong className="text-dark">👥 Personas:</strong> {reservation.peopleCount || reservation.numberOfPeople}
                     </p>
-                    <p style={metaText}>
-                      <strong>Mesas:</strong>{" "}
+                    <p>
+                      <strong className="text-dark">🪑 Mesas:</strong>{" "}
                       {assignedTables.length > 0 ? assignedTables.join(", ") : "Pendiente"}
                     </p>
                     {reservation.specialRequests && (
-                      <p style={metaText}>
-                        <strong>Solicitudes:</strong> {reservation.specialRequests}
+                      <p>
+                        <strong className="text-dark">📝 Solicitudes:</strong> {reservation.specialRequests}
                       </p>
                     )}
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
-};
-
-const cardStyle = {
-  background: "#fff",
-  borderRadius: "18px",
-  padding: "20px",
-  boxShadow: "0 12px 24px rgba(0,0,0,0.05)",
-};
-
-const titleRowStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: "12px",
-  marginBottom: "12px",
-};
-
-const statusBadge = (status) => ({
-  background: status === "confirmada" ? "#d4edda" : "#fff3cd",
-  color: status === "confirmada" ? "#155724" : "#856404",
-  padding: "6px 10px",
-  borderRadius: "999px",
-  fontSize: "12px",
-  textTransform: "capitalize",
-});
-
-const metaText = {
-  margin: "6px 0",
-  color: "#555",
-  fontSize: "14px",
 };
 
 export default MyReservationsView;

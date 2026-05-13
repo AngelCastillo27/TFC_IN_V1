@@ -4,9 +4,10 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import useAuth from "../hooks/useAuth";
 import useMenu from "../hooks/useMenu";
-import "../styles/ChineseStyle.css";
+import { Button } from "../components";
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ const Menu = () => {
     );
 
     return isUrl ? (
-      <img src={imagen} alt={label} style={{ width: '20px', height: '20px' }} />
+      <img src={imagen} alt={label} className="w-5 h-5" />
     ) : (
       <span>{imagen}</span>
     );
@@ -77,11 +78,19 @@ const Menu = () => {
   };
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '50px' }}>Cargando menú...</div>;
+    return (
+      <div className="text-center py-12 text-stone-gray">
+        Cargando menú...
+      </div>
+    );
   }
 
   if (error) {
-    return <div style={{ textAlign: 'center', padding: '50px', color: 'red' }}>Error: {error}</div>;
+    return (
+      <div className="text-center py-12 text-red-600">
+        Error: {error}
+      </div>
+    );
   }
 
   // Agrupar platos por categoría
@@ -94,81 +103,171 @@ const Menu = () => {
     return acc;
   }, {});
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ textAlign: 'center', color: '#DC143C', marginBottom: '30px' }}>Nuestra Carta</h1>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="px-6 py-8 max-w-6xl mx-auto"
+    >
+      <motion.h1
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="text-4xl font-serif font-bold text-dark text-center mb-12"
+      >
+        Nuestra Carta
+      </motion.h1>
 
       {/* Filtros */}
-      <div style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-        <div>
-          <label style={{ marginRight: '10px' }}>Categoría:</label>
-          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} style={{ padding: '5px' }}>
-            <option value="">Todas</option>
-            {categorias.map(categoria => (
-              <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label style={{ marginRight: '10px' }}>Excluir alérgenos:</label>
-          {alergenos.map(alergeno => (
-            <button
-              key={alergeno.id}
-              onClick={() => toggleExcludedAlergeno(alergeno.id)}
-              style={{
-                margin: '0 5px',
-                padding: '5px 10px',
-                background: excludedAlergenos.includes(alergeno.id) ? '#DC143C' : '#f0f0f0',
-                color: excludedAlergenos.includes(alergeno.id) ? 'white' : 'black',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="mb-8 p-6 bg-white border border-gold rounded-xs shadow-soft"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Filtro por Categoría */}
+          <div>
+            <label className="block text-sm font-semibold text-dark mb-3">
+              Categoría
+            </label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-4 py-2 border border-gold rounded-xs text-dark bg-pearl focus:outline-none focus:ring-2 focus:ring-gold"
             >
-              {renderIcon(alergeno.imagen, alergeno.nombre)} {alergeno.nombre}
-            </button>
-          ))}
-        </div>
+              <option value="">Todas</option>
+              {categorias.map(categoria => (
+                <option key={categoria.id} value={categoria.id}>
+                  {categoria.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <button onClick={resetFilters} style={{ padding: '5px 10px', background: '#568d6e', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-          Reset Filtros
-        </button>
-      </div>
-
-      {/* Menú por categorías */}
-      {Object.keys(platosPorCategoria).length === 0 ? (
-        <p style={{ textAlign: 'center' }}>No hay platos disponibles.</p>
-      ) : (
-        Object.entries(platosPorCategoria).map(([categoriaId, platosCategoria]) => (
-          <div key={categoriaId} style={{ marginBottom: '40px' }}>
-            <h2 style={{ color: '#DC143C', borderBottom: '2px solid #DC143C', paddingBottom: '10px' }}>
-              {getCategoriaImagen(categoriaId) && renderIcon(getCategoriaImagen(categoriaId), getCategoriaNombre(categoriaId))} {getCategoriaNombre(categoriaId)}
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-              {platosCategoria.map(plato => (
-                <div key={plato.id} style={{ border: '1px solid #ddd', borderRadius: '10px', padding: '15px', background: '#fff' }}>
-                  {plato.imagen && (
-                    <img src={plato.imagen} alt={plato.nombre} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '5px', marginBottom: '10px' }} />
-                  )}
-                  <h3 style={{ color: '#DC143C' }}>{plato.nombre}</h3>
-                  <p>{plato.descripcion}</p>
-                  <p style={{ fontWeight: 'bold' }}>€{plato.precio?.toFixed(2)}</p>
-                  {plato.alergenos && plato.alergenos.length > 0 && (
-                    <div>
-                      <strong>Alérgenos:</strong> {getAlergenosNombres(plato.alergenos)}
-                    </div>
-                  )}
-                </div>
+          {/* Filtro de Alérgenos */}
+          <div>
+            <label className="block text-sm font-semibold text-dark mb-3">
+              Excluir Alérgenos
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {alergenos.map(alergeno => (
+                <motion.button
+                  key={alergeno.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => toggleExcludedAlergeno(alergeno.id)}
+                  className={`px-3 py-2 rounded-xs text-xs font-medium transition-colors duration-200 ${
+                    excludedAlergenos.includes(alergeno.id)
+                      ? 'bg-gold text-dark border border-gold'
+                      : 'bg-pearl text-dark border border-gold'
+                  }`}
+                >
+                  {renderIcon(alergeno.imagen, alergeno.nombre)} {alergeno.nombre}
+                </motion.button>
               ))}
             </div>
           </div>
-        ))
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={resetFilters}
+          className="mt-4 px-6 py-2 bg-dark text-gold border border-gold rounded-xs text-sm font-semibold hover:bg-gold hover:text-dark transition-all duration-200"
+        >
+          Limpiar Filtros
+        </motion.button>
+      </motion.div>
+
+      {/* Menú por categorías */}
+      {Object.keys(platosPorCategoria).length === 0 ? (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center text-stone-gray py-12"
+        >
+          No hay platos disponibles.
+        </motion.p>
+      ) : (
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-12"
+        >
+          {Object.entries(platosPorCategoria).map(([categoriaId, platosCategoria]) => (
+            <motion.div key={categoriaId} variants={itemVariants}>
+              <h2 className="text-2xl font-serif font-bold text-dark border-b-2 border-gold pb-3 mb-8 flex items-center gap-3">
+                {getCategoriaImagen(categoriaId) && renderIcon(getCategoriaImagen(categoriaId), getCategoriaNombre(categoriaId))}
+                {getCategoriaNombre(categoriaId)}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {platosCategoria.map((plato, idx) => (
+                  <motion.div
+                    key={plato.id}
+                    variants={itemVariants}
+                    whileHover={{ y: -4 }}
+                    className="bg-white border border-gold rounded-xs p-5 shadow-soft hover:shadow-md transition-shadow duration-200"
+                  >
+                    {plato.imagen && (
+                      <img
+                        src={plato.imagen}
+                        alt={plato.nombre}
+                        className="w-full h-40 object-cover rounded-xs mb-4"
+                      />
+                    )}
+                    <h3 className="text-lg font-serif font-bold text-dark mb-2">
+                      {plato.nombre}
+                    </h3>
+                    <p className="text-sm text-stone-gray mb-3 leading-relaxed">
+                      {plato.descripcion}
+                    </p>
+                    <p className="text-xl font-bold text-gold mb-3">
+                      €{plato.precio?.toFixed(2)}
+                    </p>
+                    {plato.alergenos && plato.alergenos.length > 0 && (
+                      <div className="text-xs text-stone-gray border-t border-gold pt-3">
+                        <strong>Alérgenos:</strong> {getAlergenosNombres(plato.alergenos)}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
       )}
 
       {/* Botón para reservar */}
-      <div style={{ textAlign: 'center', marginTop: '40px' }}>
-        <button
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="text-center mt-16"
+      >
+        <Button
           onClick={() => {
             const reservePath = '/dashboard?section=nueva-reserva';
             if (user) {
@@ -181,20 +280,13 @@ const Menu = () => {
               navigate(`/login?next=${encodeURIComponent(reservePath)}`);
             }
           }}
-          style={{
-            padding: '15px 30px',
-            background: '#DC143C',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            fontSize: '18px',
-            cursor: 'pointer'
-          }}
+          variant="primary"
+          size="lg"
         >
           {user ? (role === 'admin' ? 'Ver Reservas' : 'Ir a Nueva Reserva') : 'Iniciar Sesión para Reservar'}
-        </button>
-      </div>
-    </div>
+        </Button>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -4,7 +4,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import AuthService from "../services/AuthService";
+import { Input, Button, Container } from "../components";
 import "../styles/MinimalStyle.css";
 
 const CompleteProfile = () => {
@@ -103,54 +105,78 @@ const CompleteProfile = () => {
   };
 
   return (
-    <div style={{
-      minHeight: "calc(100vh - 60px)",
-      backgroundColor: "#faf5ed",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "20px",
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "480px",
-        backgroundColor: "white",
-        border: "1px solid #e0e0e0",
-        borderRadius: "4px",
-        padding: "40px",
-      }}>
-        <div style={{ marginBottom: "28px", textAlign: "center" }}>
-          <h1 style={{
-            fontSize: "28px",
-            color: "#568d6e",
-            marginBottom: "8px"
-          }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-[calc(100vh-60px)] bg-pearl flex items-center justify-center px-4 py-8"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md bg-white border-2 border-gold rounded-sm p-10 shadow-soft"
+      >
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8 text-center"
+        >
+          <h1 className="text-3xl font-serif font-bold text-dark mb-2">
             Completar Perfil
           </h1>
-          <p style={{
-            fontSize: "14px",
-            color: "#666666",
-            margin: 0,
-          }}>
+          <p className="text-sm text-stone-gray">
             Necesitamos algunos datos adicionales para continuar
           </p>
-        </div>
+        </motion.div>
 
-        {success && (
-          <div className="success-box" style={{ marginBottom: "16px" }}>
-            ✓ ¡Perfil completado! Redirigiendo...
-          </div>
-        )}
-        {error && (
-          <div className="error-box" style={{ marginBottom: "16px" }}>
-            ⚠ {error}
-          </div>
-        )}
+        {/* Success Message */}
+        <AnimatePresence>
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 p-3 bg-green-50 border-2 border-green-400 text-green-700 rounded-xs text-sm font-medium text-center"
+            >
+              ✓ ¡Perfil completado! Redirigiendo...
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Número de Teléfono *</label>
-            <input
+        {/* Error Message */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 p-3 bg-red-50 border-2 border-red-400 text-red-700 rounded-xs text-sm font-medium"
+            >
+              ⚠ {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Form */}
+        <motion.form
+          onSubmit={handleSubmit}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="space-y-4"
+        >
+          {/* Phone Input */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <label className="block text-sm font-medium text-dark mb-2">
+              Número de Teléfono *
+            </label>
+            <Input
               type="tel"
               name="phone"
               value={formData.phone}
@@ -158,46 +184,80 @@ const CompleteProfile = () => {
               required
               placeholder="Ej: +34 600 123 456"
             />
-          </div>
+          </motion.div>
 
-          {requiresPassword && (
-            <>
-              <div className="form-group">
-                <label>Contraseña *</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Mínimo 6 caracteres"
-                />
-              </div>
+          {/* Password Fields (Conditional) */}
+          <AnimatePresence mode="wait">
+            {requiresPassword && (
+              <motion.div
+                key="password-fields"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
+                {/* Password Input */}
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.45 }}
+                >
+                  <label className="block text-sm font-medium text-dark mb-2">
+                    Contraseña *
+                  </label>
+                  <Input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                </motion.div>
 
-              <div className="form-group">
-                <label>Confirmar Contraseña *</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            </>
-          )}
+                {/* Confirm Password Input */}
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <label className="block text-sm font-medium text-dark mb-2">
+                    Confirmar Contraseña *
+                  </label>
+                  <Input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Repetir contraseña"
+                  />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary"
-            style={{ width: "100%", marginTop: "10px" }}
+          {/* Submit Button */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.55 }}
+            className="pt-2"
           >
-            {loading ? "Guardando..." : "Completar Perfil"}
-          </button>
-        </form>
-      </div>
-    </div>
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={!loading ? { y: -1 } : {}}
+              whileTap={!loading ? { y: 0 } : {}}
+              className="w-full px-4 py-3 bg-gold text-dark rounded-xs font-serif font-bold text-lg hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Guardando..." : "Completar Perfil"}
+            </motion.button>
+          </motion.div>
+        </motion.form>
+      </motion.div>
+    </motion.div>
   );
 };
 

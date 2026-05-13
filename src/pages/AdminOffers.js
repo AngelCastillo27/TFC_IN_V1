@@ -4,9 +4,10 @@
 // Sin errores de sintaxis en template literals.
 
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import offerService from "../services/OfferService";
 import menuService  from "../services/MenuService";
-import "../styles/ChineseStyle.css";
+import { Button, Input } from "../components";
 
 const EMPTY_FORM = {
   title:       "",
@@ -167,232 +168,363 @@ const AdminOffers = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-
-      {/* Cabecera */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h1 style={{ color: "#DC143C", margin: 0 }}>Administracion de Ofertas</h1>
-        <button onClick={openNew} disabled={loading} style={btnPrimary}>
-          + Nueva Oferta
-        </button>
-      </div>
-
-      {/* Mensajes */}
-      {error   && <div style={alertError}>{error}</div>}
-      {success && <div style={alertSuccess}>{success}</div>}
-
-      {/* Formulario */}
-      {showForm && (
-        <div style={{ background: "#fff8f0", border: "2px solid #DC143C", borderRadius: "10px", padding: "24px", marginBottom: "24px" }}>
-          <h2 style={{ color: "#DC143C", marginTop: 0 }}>{editingId ? "Editar Oferta" : "Nueva Oferta"}</h2>
-          <form onSubmit={handleSubmit}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>Titulo de la Oferta *</label>
-                <input name="title" value={formData.title} onChange={handleChange}
-                  placeholder="Ej: Descuento Fin de Semana" required style={inputStyle} />
-              </div>
-
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>Descripcion</label>
-                <textarea name="description" value={formData.description} onChange={handleChange}
-                  rows={3} placeholder="Describe la oferta..." style={{ ...inputStyle, resize: "vertical" }} />
-              </div>
-
-              <div>
-                <label style={labelStyle}>Descuento (%) *</label>
-                <input name="discount" type="number" min="1" max="100" value={formData.discount}
-                  onChange={handleChange} placeholder="Ej: 20" required style={inputStyle} />
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", paddingTop: "24px" }}>
-                <input name="active" type="checkbox" id="chk-active" checked={formData.active} onChange={handleChange} />
-                <label htmlFor="chk-active" style={{ color: "#8B0000", fontWeight: "bold" }}>Oferta activa</label>
-              </div>
-
-              <div>
-                <label style={labelStyle}>Fecha de Inicio</label>
-                <input name="startDate" type="datetime-local" value={formData.startDate}
-                  onChange={handleChange} style={inputStyle} />
-              </div>
-
-              <div>
-                <label style={labelStyle}>Fecha de Fin</label>
-                <input name="endDate" type="datetime-local" value={formData.endDate}
-                  onChange={handleChange} style={inputStyle} />
-              </div>
-
-              {/* Selector de platos incluidos */}
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>Platos incluidos en la oferta (opcional)</label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "8px", maxHeight: "160px", overflowY: "auto", border: "1px solid #FFD700", borderRadius: "6px", padding: "10px" }}>
-                  {dishes.length === 0 && <span style={{ color: "#888", fontSize: "13px" }}>No hay platos disponibles.</span>}
-                  {dishes.map((dish) => {
-                    const checked = selectedDishes.includes(dish.id);
-                    return (
-                      <label
-                        key={dish.id}
-                        style={{
-                          display:       "flex",
-                          alignItems:    "center",
-                          gap:           "6px",
-                          background:    checked ? "#FFD700" : "#f5f5f5",
-                          padding:       "6px 10px",
-                          borderRadius:  "20px",
-                          cursor:        "pointer",
-                          fontSize:      "13px",
-                          fontWeight:    checked ? "bold" : "normal",
-                          border:        checked ? "1px solid #8B0000" : "1px solid #ccc",
-                          transition:    "all 0.15s",
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleDish(dish.id)}
-                          style={{ display: "none" }}
-                        />
-                        {dish.name} ({parseFloat(dish.price || 0).toFixed(2)} euros)
-                      </label>
-                    );
-                  })}
-                </div>
-                <small style={{ color: "#888" }}>
-                  {selectedDishes.length === 0
-                    ? "Sin seleccion (aplica a todos los platos)"
-                    : selectedDishes.length + " plato(s) seleccionado(s)"}
-                </small>
-              </div>
-            </div>
-
-            <div style={{ marginTop: "20px", display: "flex", gap: "12px" }}>
-              <button type="submit" disabled={loading} style={btnPrimary}>
-                {loading ? "Guardando..." : "Guardar Oferta"}
-              </button>
-              <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} style={btnSecondary}>
-                Cancelar
-              </button>
-            </div>
-          </form>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-pearl px-4 py-8"
+    >
+      <div className="max-w-5xl mx-auto">
+        {/* Cabecera */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-serif font-bold text-dark">Gestión de Ofertas</h1>
+          <Button 
+            variant="primary"
+            onClick={openNew}
+            disabled={loading}
+          >
+            + Nueva Oferta
+          </Button>
         </div>
-      )}
 
-      {/* Filtros */}
-      <div style={{ display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" }}>
-        <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar oferta..." style={{ ...inputStyle, maxWidth: "260px" }} />
-        <select value={filterStatus} onChange={(e) => setFilter(e.target.value)} style={{ ...inputStyle, maxWidth: "200px" }}>
-          <option value="all">Todas</option>
-          <option value="active">Activas</option>
-          <option value="inactive">Inactivas</option>
-          <option value="vigor">En vigor ahora</option>
-        </select>
-      </div>
+        {/* Mensajes */}
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-sm mb-6"
+            >
+              {error}
+            </motion.div>
+          )}
+          {success && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-sm mb-6"
+            >
+              {success}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Estadisticas */}
-      <div style={{ display: "flex", gap: "16px", marginBottom: "20px", flexWrap: "wrap" }}>
-        {[
-          { label: "Total Ofertas",    value: offers.length },
-          { label: "Activas",          value: offers.filter((o) => o.active).length },
-          { label: "En Vigor",         value: offers.filter(isEnVigor).length },
-          { label: "Desc. Promedio",   value: offers.length > 0 ? Math.round(offers.reduce((s, o) => s + (o.discount || 0), 0) / offers.length) + "%" : "0%" },
-        ].map((s) => (
-          <div key={s.label} style={statBox}>
-            <div style={{ fontSize: "22px", fontWeight: "bold", color: "#DC143C" }}>{s.value}</div>
-            <div style={{ fontSize: "12px", color: "#555" }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
+        {/* Formulario */}
+        <AnimatePresence>
+          {showForm && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white border-2 border-gold rounded-sm p-8 mb-8 shadow-soft"
+            >
+              <h2 className="text-2xl font-serif font-bold text-dark mb-6">
+                {editingId ? "Editar Oferta" : "Nueva Oferta"}
+              </h2>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                  label="Título de la Oferta *"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  placeholder="Ej: Descuento Fin de Semana"
+                  required
+                />
 
-      {/* Loading */}
-      {loading && <p style={{ color: "#DC143C" }}>Cargando...</p>}
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-2">Descripción</label>
+                  <textarea 
+                    name="description" 
+                    value={formData.description} 
+                    onChange={handleChange}
+                    rows={3} 
+                    placeholder="Describe la oferta..."
+                    className="w-full px-4 py-2.5 border-2 border-gold rounded-sm font-sans focus:outline-none focus:ring-2 focus:ring-gold"
+                  />
+                </div>
 
-      {/* Sin resultados */}
-      {!loading && filtered.length === 0 && (
-        <p style={{ textAlign: "center", color: "#888", padding: "30px" }}>No hay ofertas que coincidan.</p>
-      )}
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="Descuento (%) *"
+                    name="discount"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={formData.discount}
+                    onChange={handleChange}
+                    placeholder="Ej: 20"
+                    required
+                  />
 
-      {/* Lista de ofertas */}
-      {!loading && filtered.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          {filtered.map((offer) => {
-            const enVigor = isEnVigor(offer);
-            return (
-              <div key={offer.id} style={{
-                background:   "#fff",
-                border:       "2px solid " + (enVigor ? "#4CAF50" : offer.active ? "#FFD700" : "#ccc"),
-                borderRadius: "10px",
-                padding:      "20px",
-                position:     "relative",
-              }}>
-                {/* Badges */}
-                <div style={{ position: "absolute", top: "16px", right: "16px", display: "flex", gap: "8px" }}>
-                  <span style={{ background: offer.active ? "#4CAF50" : "#f44336", color: "#fff", padding: "3px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "bold" }}>
-                    {offer.active ? "Activa" : "Inactiva"}
-                  </span>
-                  {enVigor && (
-                    <span style={{ background: "#FFD700", color: "#8B0000", padding: "3px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "bold" }}>
-                      En Vigor
+                  <div className="flex items-end gap-2">
+                    <input 
+                      id="active-check"
+                      name="active" 
+                      type="checkbox" 
+                      checked={formData.active} 
+                      onChange={handleChange}
+                      className="w-4 h-4 rounded-xs cursor-pointer"
+                    />
+                    <label htmlFor="active-check" className="text-sm font-medium text-dark cursor-pointer">
+                      Oferta activa
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="Fecha de Inicio"
+                    name="startDate"
+                    type="datetime-local"
+                    value={formData.startDate}
+                    onChange={handleChange}
+                  />
+
+                  <Input
+                    label="Fecha de Fin"
+                    name="endDate"
+                    type="datetime-local"
+                    value={formData.endDate}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* Selector de platos */}
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-2">
+                    Platos incluidos en la oferta (opcional)
+                  </label>
+                  <div className="flex flex-wrap gap-2 border-2 border-gold rounded-sm p-4 max-h-40 overflow-y-auto bg-pearl">
+                    {dishes.length === 0 ? (
+                      <span className="text-stone-gray text-sm">No hay platos disponibles</span>
+                    ) : (
+                      dishes.map((dish) => {
+                        const checked = selectedDishes.includes(dish.id);
+                        return (
+                          <motion.label
+                            key={dish.id}
+                            whileHover={{ scale: 1.05 }}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-full cursor-pointer text-sm font-medium transition-all ${
+                              checked 
+                                ? "bg-gold text-dark border-2 border-dark" 
+                                : "bg-white border-2 border-gold text-dark hover:bg-gold hover:bg-opacity-20"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleDish(dish.id)}
+                              className="hidden"
+                            />
+                            {dish.name} ({parseFloat(dish.price || 0).toFixed(2)}€)
+                          </motion.label>
+                        );
+                      })
+                    )}
+                  </div>
+                  <p className="text-xs text-stone-gray mt-2">
+                    {selectedDishes.length === 0
+                      ? "Sin selección (aplica a todos los platos)"
+                      : `${selectedDishes.length} plato(s) seleccionado(s)`}
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button 
+                    variant="primary"
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? "Guardando..." : "Guardar Oferta"}
+                  </Button>
+                  <Button 
+                    variant="secondary"
+                    type="button"
+                    onClick={() => { 
+                      setShowForm(false); 
+                      setEditingId(null); 
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Filtros */}
+        <div className="flex gap-4 mb-8 flex-wrap">
+          <input 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar oferta..."
+            className="flex-1 px-4 py-2.5 border-2 border-gold rounded-sm font-sans min-w-60 focus:outline-none focus:ring-2 focus:ring-gold"
+          />
+          <select 
+            value={filterStatus} 
+            onChange={(e) => setFilter(e.target.value)}
+            className="px-4 py-2.5 border-2 border-gold rounded-sm font-sans min-w-40 focus:outline-none focus:ring-2 focus:ring-gold"
+          >
+            <option value="all">Todas</option>
+            <option value="active">Activas</option>
+            <option value="inactive">Inactivas</option>
+            <option value="vigor">En vigor ahora</option>
+          </select>
+        </div>
+
+        {/* Estadísticas */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: "Total Ofertas", value: offers.length },
+            { label: "Activas", value: offers.filter((o) => o.active).length },
+            { label: "En Vigor", value: offers.filter(isEnVigor).length },
+            { label: "Desc. Promedio", value: offers.length > 0 ? Math.round(offers.reduce((s, o) => s + (o.discount || 0), 0) / offers.length) + "%" : "0%" },
+          ].map((s) => (
+            <motion.div 
+              key={s.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white border-2 border-gold rounded-sm p-4 text-center shadow-subtle"
+            >
+              <div className="text-2xl font-bold text-gold">{s.value}</div>
+              <div className="text-xs text-stone-gray">{s.label}</div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Loading */}
+        {loading && (
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="text-center text-stone-gray py-8"
+          >
+            Cargando...
+          </motion.div>
+        )}
+
+        {/* Sin resultados */}
+        {!loading && filtered.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-stone-gray py-12"
+          >
+            No hay ofertas que coincidan
+          </motion.div>
+        )}
+
+        {/* Lista de ofertas */}
+        {!loading && filtered.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-4"
+          >
+            {filtered.map((offer, idx) => {
+              const enVigor = isEnVigor(offer);
+              return (
+                <motion.div 
+                  key={offer.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  whileHover={{ y: -2, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+                  className={`bg-white border-2 rounded-sm p-6 shadow-soft transition-all ${
+                    enVigor 
+                      ? "border-green-400" 
+                      : offer.active 
+                      ? "border-gold" 
+                      : "border-stone-gray"
+                  }`}
+                >
+                  {/* Badges */}
+                  <div className="flex gap-2 mb-4">
+                    <span className={`text-xs font-bold px-2 py-1 rounded-xs ${
+                      offer.active 
+                        ? "bg-green-100 text-green-700" 
+                        : "bg-red-100 text-red-700"
+                    }`}>
+                      {offer.active ? "Activa" : "Inactiva"}
                     </span>
-                  )}
-                </div>
-
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "20px" }}>
-                  <div style={{ background: "#DC143C", color: "#fff", borderRadius: "50%", width: "60px", height: "60px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "18px", fontWeight: "bold" }}>
-                    -{offer.discount}%
-                  </div>
-                  <div style={{ flex: 1, paddingRight: "120px" }}>
-                    <h3 style={{ margin: "0 0 6px", color: "#1a1a1a" }}>{offer.title}</h3>
-                    {offer.description && <p style={{ margin: "0 0 8px", color: "#555", fontSize: "14px" }}>{offer.description}</p>}
-                    {offer.startDate && (
-                      <p style={{ margin: "0 0 4px", fontSize: "13px", color: "#888" }}>
-                        Desde: {new Date(offer.startDate).toLocaleString("es-ES")}
-                      </p>
+                    {enVigor && (
+                      <span className="text-xs font-bold px-2 py-1 rounded-xs bg-gold text-dark">
+                        En Vigor
+                      </span>
                     )}
-                    {offer.endDate && (
-                      <p style={{ margin: "0 0 4px", fontSize: "13px", color: "#888" }}>
-                        Hasta: {new Date(offer.endDate).toLocaleString("es-ES")}
-                      </p>
-                    )}
-                    <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#333" }}>
-                      <strong>Platos:</strong> {getDishNames(offer.dishIds)}
-                    </p>
                   </div>
-                </div>
 
-                {/* Acciones */}
-                <div style={{ marginTop: "16px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                  <button onClick={() => handleToggleActive(offer)} disabled={loading}
-                    style={{ ...btnToggle, background: offer.active ? "#888" : "#4CAF50" }}>
-                    {offer.active ? "Desactivar" : "Activar"}
-                  </button>
-                  <button onClick={() => openEdit(offer)} disabled={loading} style={btnEdit}>
-                    Editar
-                  </button>
-                  <button onClick={() => handleDelete(offer.id)} disabled={loading} style={btnDelete}>
-                    Eliminar
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+                  <div className="flex gap-6 items-start">
+                    <div className="bg-gold text-dark rounded-full w-16 h-16 flex items-center justify-center flex-shrink-0 font-bold text-lg">
+                      -{offer.discount}%
+                    </div>
+
+                    <div className="flex-1">
+                      <h3 className="text-lg font-serif font-bold text-dark mb-1">{offer.title}</h3>
+                      {offer.description && (
+                        <p className="text-sm text-stone-gray mb-2">{offer.description}</p>
+                      )}
+                      {offer.startDate && (
+                        <p className="text-xs text-stone-gray mb-1">
+                          Desde: {new Date(offer.startDate).toLocaleString("es-ES")}
+                        </p>
+                      )}
+                      {offer.endDate && (
+                        <p className="text-xs text-stone-gray mb-1">
+                          Hasta: {new Date(offer.endDate).toLocaleString("es-ES")}
+                        </p>
+                      )}
+                      <p className="text-sm text-dark">
+                        <strong>Platos:</strong> {getDishNames(offer.dishIds)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Acciones */}
+                  <div className="flex gap-2 mt-4 flex-wrap">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleToggleActive(offer)}
+                      disabled={loading}
+                      className={`text-xs px-3 py-2 rounded-xs font-medium transition-all disabled:opacity-50 ${
+                        offer.active
+                          ? "bg-stone-gray text-white hover:bg-dark"
+                          : "bg-green-600 text-white hover:bg-green-700"
+                      }`}
+                    >
+                      {offer.active ? "Desactivar" : "Activar"}
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => openEdit(offer)}
+                      disabled={loading}
+                      className="text-xs px-3 py-2 bg-gold text-dark rounded-xs font-medium hover:bg-gold-light transition-all"
+                    >
+                      Editar
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleDelete(offer.id)}
+                      disabled={loading}
+                      className="text-xs px-3 py-2 bg-red-600 text-white rounded-xs font-medium hover:bg-red-700 transition-all disabled:opacity-50"
+                    >
+                      Eliminar
+                    </motion.button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
   );
 };
-
-// Estilos reutilizables
-const labelStyle   = { display: "block", color: "#8B0000", fontWeight: "bold", marginBottom: "4px", fontSize: "13px" };
-const inputStyle   = { width: "100%", padding: "10px", border: "2px solid #FFD700", borderRadius: "6px", fontSize: "14px", boxSizing: "border-box" };
-const btnPrimary   = { backgroundColor: "#DC143C", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" };
-const btnSecondary = { backgroundColor: "#888", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer" };
-const btnEdit      = { background: "#FFD700", color: "#1a1a1a", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "bold" };
-const btnDelete    = { background: "#DC143C", color: "#fff", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "bold" };
-const btnToggle    = { color: "#fff", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "bold" };
-const statBox      = { background: "#fff", border: "2px solid #DC143C", borderRadius: "8px", padding: "16px 24px", textAlign: "center", minWidth: "100px" };
-const alertError   = { background: "#ffe0e0", border: "1px solid #DC143C", padding: "10px", borderRadius: "6px", marginBottom: "12px", color: "#8B0000" };
-const alertSuccess = { background: "#e0ffe0", border: "1px solid #4CAF50", padding: "10px", borderRadius: "6px", marginBottom: "12px", color: "#2e7d32" };
 
 export default AdminOffers;
